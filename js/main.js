@@ -291,7 +291,7 @@ cookieConsentStyle.href = "/js/cookieConsent.css";
 cookieConsentStyle.rel = "stylesheet";
 document.head.appendChild(cookieConsentStyle);
 
-var GAME_CDN = "";
+var GAME_CDN = "https://archive.org/download/obsidian-games";
 
 function gameBase(path) {
 	if (path === "sppa") { return ""; }
