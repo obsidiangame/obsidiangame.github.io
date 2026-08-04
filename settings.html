@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class="sl-theme-dark" lang="en">
+  <head>
+    <!-- initialize theme vars
+    https://coolors.co/10002b-240046-3c096c-5a189a-7b2cbf-9d4edd-c77dff-e0aaff -->
+
+    <!-- initialize externals -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src=" https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js "></script>
+    
+
+
+
+    <!-- initialize my stuff -->
+    <script src="/js/all.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/themes.js"></script>
+    <script src="/js/cloaks.js"></script>
+
+<link rel="stylesheet" href="/style.css" />
+<link rel="stylesheet" href="/css/settings.css" />
+
+
+    <!-- seo + other things -->
+    <title>Settings | Obsidian</title>
+    <link rel="icon" href="/favicon.ico" />
+
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <!-- toastify -->
+    <script></script>
+  </head>
+
+  <body>
+ 	<header>
+			<a href="/index.html">Home</a>
+			<a href="/bookmarklets.html">Bookmarklets</a>
+			<a href="/projects.html">Games</a>
+			<a href="/apps.html">Apps</a>
+			<a href="/settings.html">Settings</a>
+			<a id="blank" href="#">Open Blank</a>
+
+		</header>
+
+    <main>
+      <h1>Settings</h1>
+      <h3>Tab Cloak</h3>
+      <form action="javascript:setCloakCookie();">
+        <h3>Website Name</h3>
+        <input type="text" id="webname" name="webname" placeholder="Obsidian" /><br />
+        <h3>Website Icon</h3>
+        <input type="text" id="webicon" name="webicon" placeholder="https://selenite.cc/" /><br />
+        <h3>Or select a preset:</h3>
+        <div class="select-wrap">
+        <select id="presetCloaks">
+          <option>Select a preset:</option>
+          <option value="google">Google</option>
+          <option value="ddg">DuckDuckGo</option>
+          <option value="canvas">Canvas</option>
+          <option value="desmos">Desmos</option>
+          <option value="drive">Google Drive</option>
+          <option value="classroom">Google Classroom</option>
+          <option value="newtab">New Tab</option>
+          <option value="docs">Google Docs</option>
+          <option value="edpuzzle">Edpuzzle</option>
+          <option value="khan">Khan Academy</option>
+          <option value="quizlet">Quizlet</option>
+          <option value="schoology">Schoology</option>
+          <option value="reset">Reset to Obsidian</option>
+        </select>
+        </div><br />
+        <h3>Quick icons:</h3>
+        <div class="samerow" id="iconpicker"></div>
+        <input id="websubmit" class="submit" type="submit" value="Set Tab Cloak" />
+      </form>
+      <button onclick="javascript:clearCloak();">Clear your current tab cloak</button>
+      <br />
+      <h3>Stealth</h3>
+      <div class="samerow">
+      <label class="cbox">
+        <input type="checkbox" id="blockClose" name="blockClose">
+        <span class="cboxmark"></span>
+        Block tab from being closed
+        </label>
+      </div>
+      <div class="samerow">
+        <label class="cbox">
+        <input type="checkbox" id="tabDisguise" name="tabDisguise">
+        <span class="cboxmark"></span>
+        Disguise your tab when you click off (currently only Google)
+        </label>
+      </div>
+      <div class="samerow">
+        <label class="cbox">
+        <input type="checkbox" id="rightClick" name="rightClick">
+        <span class="cboxmark"></span>
+        Disable right click
+        </label>
+      </div>
+      <div class="samerow">
+        <label class="cbox">
+        <input type="checkbox" id="noInspect" name="noInspect">
+        <span class="cboxmark"></span>
+        Disable inspect shortcuts (F12, Ctrl+Shift+I, etc.)
+        </label>
+      </div>
+      <h3>Themes</h3>
+      <div class="samerow">
+        <label class="cbox">
+        <input type="checkbox" id="bgTheme" name="bgTheme">
+        <span class="cboxmark"></span>
+        Background:
+        </label>
+      </div>
+      <div class="samerow themebtns">
+        <button onclick="setTheme('main')" style="background-color: #6e738d; color: #cad3f5; border: 3px solid #8087a2">obsidian</button>
+        <button onclick="setTheme('mainnew')" style="background: linear-gradient(180deg, #2a2e46, #24273a); color: #cad3f5; border: 3px solid #8087a2">obsidian 2.0</button>
+        <button onclick="setTheme('light')" style="background-color: #bbbbbb; color: #1a1a1a; border: 3px solid #e6e6e6">light mode</button>
+        <button onclick="setTheme('dark')" style="background-color: #333333; color: #fff; border: 3px solid #444444">dark mode</button>
+        <button onclick="setTheme('egamepass')" style="background-color: #596eb1; color: #cbe0ff; border: 3px solid #5586e0">e-gamepass</button>
+        <button onclick="setTheme('cools1te')" style="background-color: #a134dc; color: #d3a4fa; border: 3px solid #b153e3">cools1te</button>
+        <button onclick="setTheme('sunset' + (bgTheme.checked ? '' : 'false'))" style="background-color: #537294; color: #fff; border: 3px solid #30719c">sunset</button>
+        <button onclick="setTheme('mountains' + (bgTheme.checked ? '' : 'false'))" style="background-color: #d37f7f; color: #fff; border: 3px solid #e28a8a">mountains</button>
+        <button onclick="setTheme('vaporwave' + (bgTheme.checked ? '' : 'false'))" style="background-color: #4b2d64; color: #fff; border: 3px solid #74568d">vaporwave</button>
+        <button onclick="setTheme('threekho')" style="background-color: #28A018; color: #fff; border: 3px solid #0A8F00">3kh0</button>
+        <button onclick="setTheme('seraph' + (bgTheme.checked ? '' : 'false'))" style="background-color: #000; color: #fff; border: 2px solid #fff">seraph</button>
+        <button onclick="setTheme('nighttime' + (bgTheme.checked ? '' : 'false'))" style="background-color: #29374d; color: #fff; border: 2px solid #fff">nighttime</button>
+        <button onclick="setTheme('mocha' + (bgTheme.checked ? '' : 'false'))" style="background-color: #6c7086; color: #fff; border: 2px solid #7f849c">mocha</button>
+        <button onclick="setTheme('frappe' + (bgTheme.checked ? '' : 'false'))" style="background-color: #737994; color: #cad3f5; border: 2px solid #838ba7">frappe</button>
+        <button onclick="setTheme('latte' + (bgTheme.checked ? '' : 'false'))" style="background-color: #9ca0b0; color: #4c4f69; border: 3px solid #8c8fa1">latte</button>
+                       <button onclick="setTheme('art')" style="background-color: #0284d4; color: #fff; border: 3px solid #0284d4">art class</button>
+        <button id="vaticanBtn" onclick="setTheme('vatican' + (bgTheme.checked ? '' : 'false'))" style="display: none; background-color: #fcd116; color: #6b5300; border: 3px solid #d4af37">VATICAN</button>
+        <button id="duceBtn" onclick="setTheme('duce' + (bgTheme.checked ? '' : 'false'))" style="display: none; background-color: #3a3a3a; color: #fff; border: 3px solid #555555">DUCE</button>
+        
+        <button onclick="customTheme()">custom</button>
+   
+      </div>
+      <div id="customMenu" style="display: none;">
+        <p>Input BG Color</p>
+        <input type="color" id="inputbg"/>
+        <p>Input Border Color</p>
+        <input type="color" id="inputborder"/>
+        <p>UI Background Color</p>
+        <input type="color" id="uibg"/>
+        <p>Text Color</p>
+        <input type="color" id="textcolor"/>
+        <p>Background</p>
+        <input type="color" id="bg"/>
+        <p>or select an image (click enter to set)</p>
+        <input type="text" id="bgimg" placeholder="https://selenite.cc/" /><br />
+        <!--     --inputbg: #000000;
+    --inputborder: #000000;
+    --uibg: #000000;
+    --textcolor: #000;
+    --bg: #000000; -->
+      </div>
+      <br />
+      <h3>Panic Mode</h3>
+      <div class="samerow">
+        <label class="cbox">
+        <input type="checkbox" id="panicOn" name="panicOn">
+        <span class="cboxmark"></span>
+        Enable panic mode
+        </label>
+      </div>
+      <form action="javascript:setPanicMode();">
+        <h3 for="panic">Website URL</h3>
+        <input type="text" id="panic" name="panic" placeholder="https://google.com" /><br />
+        <h3>Quick panic sites</h3>
+        <div class="select-wrap">
+        <select id="panicPreset">
+          <option>Select a site:</option>
+          <option value="https://google.com">Google</option>
+          <option value="https://classroom.google.com">Google Classroom</option>
+          <option value="https://canvas.instructure.com">Canvas</option>
+          <option value="https://khanacademy.org">Khan Academy</option>
+          <option value="https://quizlet.com">Quizlet</option>
+          <option value="https://docs.google.com">Google Docs</option>
+          <option value="https://schoology.com">Schoology</option>
+        </select>
+        </div>
+        <h3>Panic Keybind</h3>
+        <input type="text" id="panicKey" placeholder="Click here and press a key" /><br />
+        <p id="panicKeybind"></p>
+        <input class="submit" type="submit" value="Set Panic Mode" />
+      </form>
+      <h3>Data</h3>
+      <div class="samerow">
+        <button onclick="exportSettings()">Export Settings</button>
+        <button onclick="document.getElementById('importFile').click()">Import Settings</button>
+        <input type="file" id="importFile" accept=".json" hidden />
+        <button onclick="resetAllSettings()">Reset All Settings</button>
+      </div>
+      <h3>Preview</h3>
+      <div id="cloakpreview" class="cloak-preview">
+        <img id="previewicon" src="/favicon.ico" alt="" />
+        <span id="previewname">Obsidian</span>
+      </div>
+    </main>
+<br>
+    <footer>
+      <a href="#" onclick="toast({ title: 'Source coming soon', message: 'The source isn\'t out yet, check back later!' }); return false;">Source</a>
+      <a href="#" onclick="toast({ title: 'No Discord server yet', message: 'There is no Discord server for Obsidian yet, check back later!' }); return false;">Discord</a>
+      <a href="/suggest.html">Suggestions & Bugs</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/support.html">Donate</a>
+      <a href="/about.html">About</a>
+        
+    </footer>
+
+    <script>
+      function updateCloakPreview() {
+        var name = document.getElementById("webname").value || "Obsidian";
+        var icon = document.getElementById("webicon").value || "/favicon.ico";
+        document.getElementById("previewname").innerText = name;
+        document.getElementById("previewicon").src = icon;
+      }
+      function pickIcon(label, icon) {
+        document.getElementById("webname").value = label;
+        document.getElementById("webicon").value = icon;
+        setCloakCookie(label, icon);
+        updateCloakPreview();
+        toast({ title: "Cloak set", message: "Tab is now cloaked as " + label });
+      }
+      function populateIconPicker() {
+        var picker = document.getElementById("iconpicker");
+        if (!picker || typeof cloaklist === "undefined") return;
+        Object.entries(cloaklist).forEach(function (entry) {
+          var label = entry[1][0];
+          var icon = entry[1][1];
+          var img = document.createElement("img");
+          img.src = icon;
+          img.alt = label;
+          img.title = label;
+          img.className = "pickicon";
+          img.onclick = function () { pickIcon(label, icon); };
+          picker.appendChild(img);
+        });
+      }
+      function exportSettings() {
+        var data = { version: 1, local: {}, cookies: {} };
+        Object.keys(localStorage).forEach(function (k) {
+          if (k === "starred" || k.indexOf("obsidian.") === 0) data.local[k] = localStorage.getItem(k);
+        });
+        ["panicurl", "tabicon", "tabname"].forEach(function (k) {
+          var m = document.cookie.match(new RegExp("(?:^|; )" + k + "=([^;]*)"));
+          if (m) data.cookies[k] = m[1];
+        });
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "obsidian-settings.json";
+        a.click();
+        toast({ title: "Settings exported", message: "Saved to obsidian-settings.json" });
+      }
+      function importSettingsFromFile(file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          try {
+            var data = JSON.parse(reader.result);
+            Object.entries(data.local || {}).forEach(function (entry) {
+              localStorage.setItem(entry[0], entry[1]);
+            });
+            Object.entries(data.cookies || {}).forEach(function (entry) {
+              document.cookie = entry[0] + "=" + entry[1] + "; path=/";
+            });
+            toast({ title: "Settings imported", message: "Reloading..." });
+            location.reload();
+          } catch (err) {
+            toast({ title: "Import failed", message: "That file is not a valid settings file" });
+          }
+        };
+        reader.readAsText(file);
+      }
+      function resetAllSettings() {
+        Object.keys(localStorage).forEach(function (k) {
+          if (k === "starred" || k.indexOf("obsidian.") === 0) localStorage.removeItem(k);
+        });
+        ["panicurl", "tabicon", "tabname"].forEach(function (k) {
+          document.cookie = k + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+        });
+        toast({ title: "Settings reset", message: "Reloading..." });
+        location.reload();
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        if (localStorage.getItem("obsidian.konami") && document.getElementById("vaticanBtn")) {
+          document.getElementById("vaticanBtn").style.display = "";
+        }
+        if (localStorage.getItem("obsidian.duce") && document.getElementById("duceBtn")) {
+          document.getElementById("duceBtn").style.display = "";
+        }
+        updateCloakPreview();
+        document.getElementById("webname").addEventListener("input", updateCloakPreview);
+        document.getElementById("webicon").addEventListener("input", updateCloakPreview);
+        var panicKeybind = document.getElementById("panicKeybind");
+        panicKeybind.innerText = localStorage.getItem("obsidian.panicKey") ? "Current keybind: " + localStorage.getItem("obsidian.panicKey") : "No keybind set yet";
+        document.getElementById("panicKey").addEventListener("keydown", function () {
+          setTimeout(function () {
+            panicKeybind.innerText = localStorage.getItem("obsidian.panicKey") ? "Current keybind: " + localStorage.getItem("obsidian.panicKey") : "No keybind set yet";
+          }, 10);
+        });
+        document.getElementById("panicPreset").addEventListener("change", function (e) {
+          if (e.target.value) document.getElementById("panic").value = e.target.value;
+        });
+        document.getElementById("importFile").addEventListener("change", function (e) {
+          if (e.target.files[0]) importSettingsFromFile(e.target.files[0]);
+        });
+      });
+    </script>
+
+  </body>
+</html>
+
+

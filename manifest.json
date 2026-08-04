@@ -1,0 +1,21 @@
+{
+    "name": "Obsidian",
+    "short_name": "Obsidian",
+    "start_url": "index.html",
+    "scope": "./",
+    "icons": [
+      {
+        "src": "img/obsidian192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "img/obsidian512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "theme_color": "#ffffff",
+    "background_color": "#10002b",
+    "display": "standalone"
+  }

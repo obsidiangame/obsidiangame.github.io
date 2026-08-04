@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html class="sl-theme-dark" lang="en">
+	<head>
+		<!-- initialize theme vars
+    https://coolors.co/10002b-240046-3c096c-5a189a-7b2cbf-9d4edd-c77dff-e0aaff -->
+
+		<!-- initialize externals -->
+		<meta content="Obsidian" property="og:title" />
+		<meta content="Obsidian is the best unblocked games site. With over 400 games, no other websites come close to Obsidian." property="og:description" />
+		<meta content="/favicon.png" property="og:image" />
+		<meta content="#c77dff" data-react-helmet="true" name="theme-color" />
+		<script src=" https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js "></script>
+
+		<!-- initialize my stuff -->
+		<script src="/js/all.min.js"></script>
+		<script src="/js/main.js"></script>
+		<script>
+			let currentGame = null;
+			let remuteTimer = null;
+			function patchGameAudio(w) {
+				try {
+					if (w.__obsidianPatched) return;
+					w.__obsidianPatched = true;
+					w.__obsidianCtxs = [];
+					const ctxs = w.__obsidianCtxs;
+					const AC = w.AudioContext || w.webkitAudioContext;
+					if (AC) {
+						function Wrapped() {
+							const c = new AC(...arguments);
+							ctxs.push(c);
+							return c;
+						}
+						Wrapped.prototype = AC.prototype;
+						try { w.AudioContext = Wrapped; } catch (e) {}
+						if (w.webkitAudioContext) w.webkitAudioContext = Wrapped;
+					}
+				} catch (e) {}
+			}
+			function setGameVolume(level) {
+				const frame = document.getElementById("gameFrame");
+				const v = level / 100;
+				const w = frame.contentWindow;
+				const d = frame.contentDocument;
+				try {
+					if (w) {
+						patchGameAudio(w);
+						const ctxs = w.__obsidianCtxs || [];
+						ctxs.forEach((c) => {
+							if (v <= 0) { c.suspend && c.suspend(); } else { c.resume && c.resume(); }
+						});
+					}
+					if (d) {
+						d.querySelectorAll("audio, video").forEach((el) => {
+							el.volume = v;
+							el.muted = v <= 0;
+						});
+					}
+				} catch (e) {}
+				document.getElementById("volicon").src = v <= 0 ? "/img/sound-off.svg" : "/img/sound-on.svg";
+				if (currentGame) localStorage.setItem("obsidian.vol." + currentGame[0], level);
+				if (v <= 0) {
+					if (!remuteTimer) {
+						remuteTimer = setInterval(() => {
+							try {
+								if (frame.contentDocument) frame.contentDocument.querySelectorAll("audio, video").forEach((el) => { el.muted = true; });
+							} catch (e) {}
+						}, 2000);
+					}
+				} else {
+					if (remuteTimer) { clearInterval(remuteTimer); remuteTimer = null; }
+				}
+			}
+			let currentAspect = "fit";
+			function applyAspect() {
+				const wrap = document.getElementById("frameWrap");
+				const frame = document.getElementById("gameFrame");
+				const cw = wrap.clientWidth;
+				const ch = wrap.clientHeight;
+				if (currentAspect === "fit") {
+					frame.style.width = "100%";
+					frame.style.height = "100%";
+					return;
+				}
+				const r = parseFloat(currentAspect);
+				let w = cw, h = cw / r;
+				if (h > ch) { h = ch; w = ch * r; }
+				frame.style.width = Math.floor(w) + "px";
+				frame.style.height = Math.floor(h) + "px";
+			}
+			document.addEventListener("DOMContentLoaded", () => {
+				let game;
+				if (document.location.hash) {
+					game = JSON.parse(decodeURIComponent(atob(document.location.hash.substring(1))));
+					localStorage.setItem("obsidian.lastGame", document.location.hash.substring(1));
+					document.location.hash = "";
+				} else if (localStorage.getItem("obsidian.lastGame")) {
+					game = JSON.parse(decodeURIComponent(atob(localStorage.getItem("obsidian.lastGame"))));
+				}
+				if (game) {
+					currentGame = game;
+					const gameFrame = document.getElementById("gameFrame");
+					const loadScreen = document.getElementById("loadscreen");
+					let progress = 0;
+					const progressInterval = setInterval(() => {
+						progress = Math.min(progress + 2 + Math.random() * 6, 92);
+						document.getElementById("loadbar").style.width = progress + "%";
+						document.getElementById("loadpct").innerText = Math.floor(progress) + "%";
+					}, 90);
+					gameFrame.onload = () => {
+						clearInterval(progressInterval);
+						document.getElementById("loadbar").style.width = "100%";
+						document.getElementById("loadpct").innerText = "100%";
+						gameFrame.style.opacity = "1";
+						setTimeout(() => {
+							loadScreen.style.opacity = "0";
+							setTimeout(() => loadScreen.remove(), 500);
+						}, 250);
+						currentAspect = localStorage.getItem("obsidian.asp." + game[0]) || "fit";
+						const savedVol = parseInt(localStorage.getItem("obsidian.vol." + game[0]));
+						const volume = document.getElementById("volume");
+						volume.value = isNaN(savedVol) ? 100 : savedVol;
+						setGameVolume(parseInt(volume.value));
+						applyAspect();
+						document.querySelectorAll(".aspectbtn").forEach((b) => {
+							b.classList.toggle("active", b.dataset.ratio === currentAspect);
+						});
+					};
+					gameFrame.style.opacity = "0";
+					gameFrame.style.transition = "opacity 0.5s ease";
+					gameFrame.setAttribute("src", `/${game[3] || "semag"}/${game[0]}/index.html`);
+					document.getElementById("gameImage").setAttribute("src", `/${game[3] || "semag"}/${game[0]}/${decodeURIComponent(game[1])}`);
+					document.getElementById("gameName").innerText = game[2];
+				}
+				document.getElementById("volume").addEventListener("input", (e) => {
+					setGameVolume(parseInt(e.target.value));
+				});
+				document.querySelectorAll(".aspectbtn").forEach((b) => {
+					b.addEventListener("click", () => {
+						currentAspect = b.dataset.ratio;
+						document.querySelectorAll(".aspectbtn").forEach((x) => x.classList.toggle("active", x === b));
+						if (currentGame) localStorage.setItem("obsidian.asp." + currentGame[0], currentAspect);
+						applyAspect();
+					});
+				});
+				window.addEventListener("resize", applyAspect);
+				document.getElementById("fullscreen").addEventListener("click", () => {
+					let frame = document.getElementById("gameFrame");
+					if (document.fullscreenElement) {
+						document.exitFullscreen();
+					} else {
+						frame.requestFullscreen();
+					}
+				})
+			});
+		</script>
+
+		<link rel="stylesheet" href="/style.css" />
+		<link rel="manifest" href="/manifest.json" />
+
+		<!-- seo + other things -->
+		<title>Obsidian</title>
+		<link rel="icon" href="/favicon.ico" />
+	</head>
+	<alerts> </alerts>
+	<body>
+		<header>
+			<a href="/index.html">Home</a>
+			<a href="/bookmarklets.html">Bookmarklets</a>
+			<a href="/projects.html">Games</a>
+			<a href="/apps.html">Apps</a>
+			<a href="/settings.html">Settings</a>
+			<a id="blank" href="#">Open Blank</a>
+		</header>
+		<main>
+			<div id="gamecontainer">
+				<div id="frameWrap">
+					<iframe id="gameFrame" allow="fullscreen" sandbox="allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin"></iframe>
+					<div id="loadscreen">
+						<img id="loadlogo" src="/favicon.png" />
+						<div id="loadbarwrap">
+							<div id="loadbar"></div>
+						</div>
+						<p id="loadpct">0%</p>
+					</div>
+				</div>
+				<div id="infobox">
+					<img id="gameImage" src="favicon.png" />
+					<h2 id="gameName">Obsidian</h2>
+				</div>
+				<div id="controlsbar">
+					<div class="ctrlgroup">
+						<span class="ctrllabel">Volume</span>
+						<img id="volicon" src="/img/sound-on.svg" class="ctrl-icon" />
+						<input type="range" id="volume" min="0" max="100" value="100" />
+					</div>
+					<div class="ctrlgroup">
+						<span class="ctrllabel">Aspect</span>
+						<button class="aspectbtn active" data-ratio="fit">Fit</button>
+						<button class="aspectbtn" data-ratio="1.7778">16:9</button>
+						<button class="aspectbtn" data-ratio="1.3333">4:3</button>
+						<button class="aspectbtn" data-ratio="1">1:1</button>
+					</div>
+					<div class="opposite">
+						<img class="button" id="fullscreen" src="/img/fullscreen.svg">
+					</div>
+				</div>
+			</div>
+		</main>
+		<footer class="noscroll">
+			<a href="#" onclick="toast({ title: 'Source coming soon', message: 'The source isn\'t out yet, check back later!' }); return false;">Source</a>
+			<a href="#" onclick="toast({ title: 'No Discord server yet', message: 'There is no Discord server for Obsidian yet, check back later!' }); return false;">Discord</a>
+			<a href="/suggest.html">Suggestions & Bugs</a>
+			<a href="/contact.html">Contact</a>
+			<a href="/support.html">Donate</a>
+			<a href="/about.html">About</a>
+		</footer>
+	</body>
+</html>

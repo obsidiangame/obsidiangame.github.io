@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html class="sl-theme-dark" lang="en">
+	<head>
+		<!-- initialize theme vars
+    https://coolors.co/10002b-240046-3c096c-5a189a-7b2cbf-9d4edd-c77dff-e0aaff -->
+
+		<!-- initialize externals -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+		<script src=" https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js "></script>
+
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/themes/dark.css" />
+		<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
+
+		<!-- initialize my stuff -->
+		<script src="/js/all.min.js"></script>
+		<script src="/js/main.js"></script>
+		<script src="/js/themes.js"></script>
+		
+		<link rel="stylesheet" href="/style.css" />
+
+		<!-- seo + other things -->
+		<title>About | Obsidian</title>
+		<link rel="icon" href="/favicon.ico" />
+
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<style>
+			.samerow p {
+				margin-right: 4px;
+			}
+		</style>
+
+		<!-- toastify -->
+		<script></script>
+	</head>
+
+	<body>
+		<header>
+			<a href="/index.html">Home</a>
+			<a href="/bookmarklets.html">Bookmarklets</a>
+			<a href="/projects.html">Games</a>
+			<a href="/apps.html">Apps</a>
+			<a href="/settings.html">Settings</a>
+			<a id="blank" href="#">Open Blank</a>
+
+		</header>
+		<main id="main">
+			<h1>About Obsidian</h1>
+			<p style="padding-left: 100px; padding-right: 100px; padding-bottom: 20px">Obsidian is a unblocked games website with over 200 games, with a simple tab cloak. Obsidian was started as a small project, shared between friends. Rebranded from the old UI. I saw Selenite, another game website, which was open source. I saw that the owner was trans so I decided to make my own game website not made by a trans person. So I took inspiration from them to build Obsidian.</p>
+
+			<h2>Credits</h2>
+			<p><a href="https://jquery.com/">jQuery</a>: a lot of the more technical stuff.</p>
+			<p><a href="https://github.com/js-cookie/js-cookie/">js-cookie</a>: working with cookies.</p>
+			<p><a href="https://shoelace.style">Shoelace</a>: a lot of smaller styling, such as the safe mode alert</p>
+			<p><a href="https://www.bootcss.com/">Bootstrap</a>: useful as a base for some smaller, styling such as the new games popup</p>
+			<p><a href="https://3kh0.net">3kh0</a>: a lot of games, the download/upload save feature, and the main inspiration</p>
+			<p><a href="/backgrounds.html">View Background Credits</a></p>
+
+			<h2>Developers</h2>
+			<div class="samerow">
+				<sl-avatar image="/img/pfps/chesco.jpg" label="Chesco"></sl-avatar>
+				<p>Chesco</p>
+			</div>
+
+      </div>
+
+
+		</main>
+
+		<footer>
+			<a href="#" onclick="toast({ title: 'Source coming soon', message: 'The source isn\'t out yet, check back later!' }); return false;">Source</a>
+			<a href="#" onclick="toast({ title: 'No Discord server yet', message: 'There is no Discord server for Obsidian yet, check back later!' }); return false;">Discord</a>
+			<a href="/suggest.html">Suggestions & Bugs</a>
+			<a href="/contact.html">Contact</a>
+			<a href="/support.html">Donate</a>
+			<a href="/about.html">About</a>
+		</footer>
+	</body>
+</html>

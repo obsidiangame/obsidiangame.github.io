@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html class="sl-theme-dark" lang="en">
+  <head>
+    <!-- initialize theme vars
+    https://coolors.co/10002b-240046-3c096c-5a189a-7b2cbf-9d4edd-c77dff-e0aaff -->
+
+    <!-- initialize externals -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src=" https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js "></script>
+    
+
+
+
+
+    <!-- initialize my stuff -->
+    <script src="/js/all.min.js"></script>
+    <script src="/js/main.js"></script>
+<script src="/js/themes.js"></script>
+    
+    <link rel="stylesheet" href="/style.css" />
+
+
+
+    
+
+    <!-- seo + other things -->
+    <title>Obsidian</title>
+    <link rel="icon" href="/favicon.ico" />
+
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <!-- toastify -->
+    <script>
+      if(document.href.contains("eg1.8") || document.href.contains("eaglercraft")) {
+        document.href = "/semag/eg/"
+      }
+    </script>
+  </head>
+  <alerts>
+
+  </alerts>
+  <body id="noscroll">
+    	<header>
+			<a href="/index.html">Home</a>
+			<a href="/bookmarklets.html">Bookmarklets</a>
+			<a href="/projects.html">Games</a>
+			<a href="/apps.html">Apps</a>
+			<a href="/settings.html">Settings</a>
+			<a id="blank" href="#">Open Blank</a>
+
+		</header>
+    <main id="main" class="noscroll">
+      <h1>Page not found!</h1>
+      <p>We could not find this page.</p>
+      <a href="/index.html"><button>Go home</button></a>
+      <p class="trintro">Well, since you're here... you might as well play a typing game.</p>
+      <div id="typerace">
+        <h2>Typing race</h2>
+        <p id="trhint">Click anywhere and start typing!</p>
+        <div id="trphrase"></div>
+        <div id="trstats">
+          <span id="trwpm">0 WPM</span>
+          <span id="tracc">100%</span>
+        </div>
+        <button id="trrestart" style="display: none;" onclick="trStart()">Race again</button>
+      </div>
+    </main>
+    
+    <footer class="noscroll">
+      <a href="#" onclick="toast({ title: 'Source coming soon', message: 'The source isn\'t out yet, check back later!' }); return false;">Source</a>
+      <a href="#" onclick="toast({ title: 'No Discord server yet', message: 'There is no Discord server for Obsidian yet, check back later!' }); return false;">Discord</a>
+      <a href="/suggest.html">Suggestions & Bugs</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/support.html">Donate</a>
+      <a href="/about.html">About</a>
+    </footer>
+
+    <script>
+      const trPhrases = [
+        "you found the 404 page now type fast before the teacher comes",
+        "obsidian is the best unblocked games site and that is a fact",
+        "this page does not exist but your typing speed definitely does",
+        "better thank me for this unblocked website or no games for you",
+        "error four oh four means the page ran away from school",
+        "the cake is a lie but the games are all real and free",
+        "type fast and maybe you will unlock the secret vatican theme",
+        "random quote generator go brrr while you wait here",
+      ];
+      let trText = "", trPos = 0, trErrors = 0, trTotal = 0, trStartTime = null, trDone = false, trTimer = null;
+
+      function trBuild() {
+        const el = document.getElementById("trphrase");
+        el.innerHTML = "";
+        for (let i = 0; i < trText.length; i++) {
+          const s = document.createElement("span");
+          s.textContent = trText[i];
+          el.appendChild(s);
+        }
+        el.children[0].classList.add("tr-cur");
+      }
+      function trRender() {
+        const children = document.getElementById("trphrase").children;
+        for (let i = 0; i < children.length; i++) {
+          children[i].classList.remove("tr-ok", "tr-bad", "tr-cur");
+          if (i < trPos) children[i].classList.add("tr-ok");
+        }
+        if (trPos < children.length) children[trPos].classList.add("tr-cur");
+      }
+      function trUpdateStats() {
+        const minutes = (Date.now() - trStartTime) / 60000;
+        const wpm = minutes > 0 ? Math.round(trPos / 5 / minutes) : 0;
+        document.getElementById("trwpm").innerText = wpm + " WPM";
+        document.getElementById("tracc").innerText = trTotal ? Math.round((1 - trErrors / trTotal) * 100) + "%" : "100%";
+      }
+      function trStart() {
+        trText = trPhrases[Math.floor(Math.random() * trPhrases.length)];
+        trPos = 0; trErrors = 0; trTotal = 0; trStartTime = null; trDone = false;
+        document.getElementById("trrestart").style.display = "none";
+        document.getElementById("trhint").innerText = "Click anywhere and start typing!";
+        trBuild();
+        trUpdateStats();
+        if (trTimer) clearInterval(trTimer);
+        trTimer = setInterval(trUpdateStats, 500);
+      }
+      document.addEventListener("keydown", (e) => {
+        if (trDone) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.target.tagName == "INPUT" || e.target.tagName == "TEXTAREA" || e.target.tagName == "SELECT") return;
+        if (e.key === "Backspace") {
+          if (trPos > 0) trPos--;
+          e.preventDefault();
+          trRender();
+        } else if (e.key.length === 1) {
+          if (!trStartTime) trStartTime = Date.now();
+          if (e.key === trText[trPos]) {
+            trPos++;
+            trTotal++;
+          } else {
+            trErrors++;
+            trTotal++;
+            const children = document.getElementById("trphrase").children;
+            if (children[trPos]) children[trPos].classList.add("tr-bad");
+          }
+          trRender();
+          trUpdateStats();
+          if (trPos === trText.length) {
+            trDone = true;
+            clearInterval(trTimer);
+            document.getElementById("trhint").innerText = "Finished!";
+            document.getElementById("trrestart").style.display = "";
+          }
+        }
+      });
+      document.addEventListener("DOMContentLoaded", trStart);
+    </script>
+
+  </body>
+</html>
