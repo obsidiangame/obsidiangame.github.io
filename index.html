@@ -36,8 +36,8 @@
 		<script src=" https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js "></script>
 
 		<!-- initialize my stuff -->
-		<script src="/js/all.min.js"></script>
-		<script src="/js/main.js"></script>
+		<script src="/js/all.min.js?v=2"></script>
+		<script src="/js/main.js?v=2"></script>
 		<script>
 			let quotes;
 			document.addEventListener("DOMContentLoaded", () => {
@@ -53,6 +53,9 @@
 				if (lastGame) {
 					try {
 						const game = JSON.parse(decodeURIComponent(atob(lastGame)));
+						if (game[3] === "sppa" && ["11", "emu", "gba", "scratch1", "sb2toswf", "ruffle", "turbowarp"].indexOf(game[0]) === -1) {
+							game[3] = "semag";
+						}
 						const card = document.getElementById("continuecard");
 						card.href = "/loader.html#" + lastGame;
 						document.getElementById("continueicon").src = gameBase(game[3]) + "/" + (game[3] || "semag") + "/" + game[0] + "/" + decodeURIComponent(game[1]);
@@ -76,7 +79,7 @@
 			}
 		</script>
 
-		<link rel="stylesheet" href="/style.css" />
+		<link rel="stylesheet" href="/style.css?v=2" />
 		<link rel="manifest" href="/manifest.json" />
 
 		<!-- seo + other things -->
