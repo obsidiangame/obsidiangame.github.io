@@ -14,7 +14,7 @@
 
 		<!-- initialize my stuff -->
 		<script src="/js/all.min.js?v=2"></script>
-		<script src="/js/main.js?v=2"></script>
+		<script src="/js/main.js?v=3"></script>
 		<script>
 			let currentGame = null;
 			let remuteTimer = null;
@@ -131,8 +131,8 @@
 					};
 					gameFrame.style.opacity = "0";
 					gameFrame.style.transition = "opacity 0.5s ease";
-					gameFrame.setAttribute("src", `${gameBase(game[3])}/${game[3] || "semag"}/${game[0]}/index.html`);
-					document.getElementById("gameImage").setAttribute("src", `${gameBase(game[3])}/${game[3] || "semag"}/${game[0]}/${decodeURIComponent(game[1])}`);
+					gameFrame.setAttribute("src", `/${game[3] || "semag"}/${game[0]}/index.html`);
+					document.getElementById("gameImage").setAttribute("src", `/${game[3] || "semag"}/${game[0]}/${decodeURIComponent(game[1])}`);
 					document.getElementById("gameName").innerText = game[2];
 				}
 				document.getElementById("volume").addEventListener("input", (e) => {

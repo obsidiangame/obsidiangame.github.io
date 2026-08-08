@@ -33,7 +33,7 @@ function loadGames(data) {
 			.data("recommended", data[i].recommended)
 			.append(
 				$("<img>").prop({
-					src: gameBase() + "/semag/" + data[i].directory + "/" + data[i].image,
+					src: "semag/" + data[i].directory + "/" + data[i].image,
 					alt: data[i].name + " logo",
 					loading: "lazy"
 				})

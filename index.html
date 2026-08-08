@@ -37,7 +37,7 @@
 
 		<!-- initialize my stuff -->
 		<script src="/js/all.min.js?v=2"></script>
-		<script src="/js/main.js?v=2"></script>
+		<script src="/js/main.js?v=3"></script>
 		<script>
 			let quotes;
 			document.addEventListener("DOMContentLoaded", () => {
@@ -58,7 +58,7 @@
 						}
 						const card = document.getElementById("continuecard");
 						card.href = "/loader.html#" + lastGame;
-						document.getElementById("continueicon").src = gameBase(game[3]) + "/" + (game[3] || "semag") + "/" + game[0] + "/" + decodeURIComponent(game[1]);
+						document.getElementById("continueicon").src = (game[3] || "semag") + "/" + game[0] + "/" + decodeURIComponent(game[1]);
 						document.getElementById("continuename").innerText = game[2] + (game[3] == "sppa" ? " (App)" : "");
 						card.style.display = "flex";
 					} catch (error) {

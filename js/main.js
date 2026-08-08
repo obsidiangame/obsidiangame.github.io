@@ -291,14 +291,3 @@ cookieConsentStyle.href = "/js/cookieConsent.css";
 cookieConsentStyle.rel = "stylesheet";
 document.head.appendChild(cookieConsentStyle);
 
-var GAME_CDN = "https://archive.org/download/obsidian-games";
-
-function gameBase(path) {
-	if (path === "sppa") { return ""; }
-	var manual = localStorage.getItem("obsidian.gamesBase");
-	if (manual) { return manual; }
-	if (location.hostname.indexOf("github.io") !== -1) {
-		return GAME_CDN;
-	}
-	return "";
-}
