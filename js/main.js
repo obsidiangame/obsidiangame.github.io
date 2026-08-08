@@ -291,3 +291,7 @@ cookieConsentStyle.href = "/js/cookieConsent.css";
 cookieConsentStyle.rel = "stylesheet";
 document.head.appendChild(cookieConsentStyle);
 
+
+if ("serviceWorker" in navigator) {
+	navigator.serviceWorker.register("/sw.js", { scope: "/semag/" }).catch(() => {});
+}
