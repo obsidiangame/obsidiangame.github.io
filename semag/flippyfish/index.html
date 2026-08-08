@@ -1,1 +1,28 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=https://archive.org/download/obsidian-games/semag/flippyfish/index.html"><script>location.replace("https://archive.org/download/obsidian-games/semag/flippyfish/index.html");</script></head><body><a href="https://archive.org/download/obsidian-games/semag/flippyfish/index.html">Redirecting to game...</a></body></html>
+
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<base href="https://archive.org/download/obsidian-games/semag/flippyfish/">
+    <title>Flippy Fish</title>
+    <script src="/js/all.min.js"></script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+      var unityInstance = UnityLoader.instantiate("unityContainer", "Build/FlippyFishHTML.json", {onProgress: UnityProgress});
+    </script>
+  </head>
+  <body>
+    <div class="webgl-content">
+      <div id="unityContainer" style="width: 960px; height: 600px"></div>
+      <div class="footer">
+        <div class="webgl-logo"></div>
+        <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
+        <div class="title">Flippy Fish</div>
+      </div>
+    </div>
+  </body>
+</html>
