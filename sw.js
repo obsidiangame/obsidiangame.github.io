@@ -1,4 +1,4 @@
-var PROXY_BASE = "https://archive.org/download/obsidian-games";
+var PROXY_BASE = "https://raw.githack.com/obsidiangame/games/main";
 
 self.addEventListener("install", function () { self.skipWaiting(); });
 self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim()); });
