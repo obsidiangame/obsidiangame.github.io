@@ -319,6 +319,17 @@
 				return "https://" + s;
 			}
 
+			function waitActive(registration, ms) {
+				return new Promise((resolve, reject) => {
+					const t0 = Date.now();
+					(function poll() {
+						if (registration.active) return resolve(registration.active);
+						if (Date.now() - t0 > ms) return reject(new Error("Service worker did not activate"));
+						setTimeout(poll, 100);
+					})();
+				});
+			}
+
 			async function init() {
 				if (!("serviceWorker" in navigator)) {
 					setLoad("Your browser doesn't support service workers.", 0);
@@ -327,23 +338,18 @@
 				try {
 					setLoad("Installing proxy service worker...", 10);
 					const registration = await navigator.serviceWorker.register("/proxy/sw.js", { scope: "/proxy/" });
-					if (!navigator.serviceWorker.controller) {
-						setLoad("Waiting for service worker...", 25);
-						await new Promise((resolve, reject) => {
-							const timer = setTimeout(() => reject(new Error("Service worker took too long")), 15000);
-							navigator.serviceWorker.addEventListener("controllerchange", () => { clearTimeout(timer); resolve(); }, { once: true });
-						});
-					} else {
-						await navigator.serviceWorker.ready;
+					const sw = navigator.serviceWorker.controller ?? registration.active;
+					if (!sw) {
+						setLoad("Activating service worker...", 25);
+						await waitActive(registration, 15000);
 					}
 					setLoad("Loading transport...", 40);
 					const Transport = LibcurlTransport.LibcurlClient ?? LibcurlTransport.default;
 					const transport = new Transport({ wisp: localStorage.getItem(WISP_KEY) || "wss://anura.pro/" });
 					await transport.init();
 					setLoad("Starting controller...", 70);
-					const sw = navigator.serviceWorker.controller ?? registration.active;
 					controller = new $scramjetController.Controller({
-						serviceworker: sw,
+						serviceworker: navigator.serviceWorker.controller ?? registration.active,
 						transport,
 						config: { prefix: FRAME_PREFIX }
 					});
