@@ -35,7 +35,8 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				opacity: 0.85;
+				opacity: 0.8;
+				transition: background-color 0.2s ease, opacity 0.2s ease;
 			}
 			.navbtn:hover {
 				opacity: 1;
@@ -63,75 +64,7 @@
 				opacity: 0.5;
 			}
 			#urlbar:focus {
-				border-color: #9d4edd;
-			}
-			#tabsbar {
-				flex: 0 0 auto;
-				display: flex;
-				align-items: center;
-				gap: 6px;
-				padding: 8px 12px 0;
-				background-color: var(--uibg);
-				overflow-x: auto;
-				box-sizing: border-box;
-			}
-			#tabholder {
-				display: flex;
-				align-items: center;
-				gap: 6px;
-				flex: 0 0 auto;
-			}
-			.tab {
-				flex: 0 0 auto;
-				max-width: 200px;
-				display: flex;
-				align-items: center;
-				gap: 8px;
-				padding: 7px 10px;
-				border-radius: 8px 8px 0 0;
-				cursor: pointer;
-				font-size: 13px;
-				background-color: var(--inputbg);
-				opacity: 0.7;
-				border: 1px solid var(--inputborder);
-				border-bottom: none;
-				box-sizing: border-box;
-				user-select: none;
-			}
-			.tab:hover {
-				opacity: 0.9;
-			}
-			.tab.active {
-				opacity: 1;
-				background-color: #5a189a;
-			}
-			.tab span:first-child {
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-			}
-			.tab-x {
-				color: var(--textcolor);
-				opacity: 0.7;
-				padding: 0 2px;
-				font-weight: bold;
-			}
-			.tab-x:hover {
-				opacity: 1;
-			}
-			#newtab {
-				flex: 0 0 auto;
-				background: none;
-				cursor: pointer;
-				font-size: 18px;
-				padding: 4px 12px;
-				border-radius: 8px;
-				color: var(--textcolor);
-				opacity: 0.8;
-			}
-			#newtab:hover {
-				opacity: 1;
-				background-color: var(--inputbg);
+				border-color: var(--inputborder);
 			}
 			#bookmarks {
 				flex: 0 0 auto;
@@ -175,6 +108,7 @@
 			#emptybookmarks {
 				font-size: 12px;
 				opacity: 0.5;
+				color: var(--textcolor);
 			}
 			#frames {
 				flex: 1 1 auto;
@@ -182,13 +116,12 @@
 				position: relative;
 				overflow: hidden;
 			}
-			.frame {
+			#frameEl {
 				position: absolute;
 				inset: 0;
 				width: 100%;
 				height: 100%;
 				border: 0;
-				display: none;
 			}
 			#loadscreen {
 				position: absolute;
@@ -217,12 +150,13 @@
 			#loadbar {
 				width: 0%;
 				height: 100%;
-				background-color: #9d4edd;
+				background-color: var(--inputborder);
 				transition: width 0.3s ease;
 			}
 			#loadpct {
 				font-size: 14px;
 				opacity: 0.7;
+				color: var(--textcolor);
 			}
 		</style>
 	</head>
@@ -259,11 +193,9 @@
 						<svg viewBox="0 0 24 24" fill="none"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.61 3.61 0 0 1 8.4 12c0-1.98 1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
 					</button>
 				</div>
-				<div id="tabsbar">
-					<div id="newtabwrap"><button id="newtab" title="New tab" onclick="addTab()">+</button></div>
-				</div>
 				<div id="bookmarks"><span id="emptybookmarks">No bookmarks yet - click the star to save a page.</span></div>
 				<div id="frames">
+					<iframe id="frameEl" sandbox="allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin" allow="fullscreen"></iframe>
 					<div id="loadscreen">
 						<img id="loadlogo" src="/favicon.png" />
 						<div id="loadbarwrap">
@@ -293,13 +225,10 @@
 			const BOOKMARKS_KEY = "obsidian.proxy.bookmarks";
 			const FRAME_PREFIX = "/proxy/~/sj/";
 			let controller = null;
-			let tabs = [];
-			let active = 0;
-			let loadingBar = null;
+			let frame = null;
 
 			const urlbar = document.getElementById("urlbar");
-			const framesEl = document.getElementById("frames");
-			const tabsEl = document.getElementById("tabsbar");
+			const frameEl = document.getElementById("frameEl");
 			const bookmarksEl = document.getElementById("bookmarks");
 			const starBtn = document.getElementById("star");
 			const loadscreen = document.getElementById("loadscreen");
@@ -357,37 +286,15 @@
 					setLoad("Done!", 100);
 					loadscreen.style.opacity = "0";
 					setTimeout(() => loadscreen.remove(), 500);
-					addTab();
+					frame = controller.createFrame(frameEl);
 				} catch (err) {
 					console.error("Proxy init failed:", err);
 					setLoad("Proxy failed to load: " + (err?.message || err), 0);
 				}
 			}
 
-			function getFrame(tab) {
-				return controller?.frames.find((f) => f.element === tab.iframe) || null;
-			}
-
-			function addTab(url) {
-				const iframe = document.createElement("iframe");
-				iframe.className = "frame";
-				iframe.setAttribute("sandbox", "allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin");
-				iframe.setAttribute("allow", "fullscreen");
-				framesEl.appendChild(iframe);
-				const tab = { iframe, url: null, title: "New Tab" };
-				tabs.push(tab);
-				renderTabs();
-				switchTab(tabs.length - 1);
-				if (url) go(url);
-				return tab;
-			}
-
 			function go(url) {
-				const t = tabs[active];
-				if (!t || !url) return;
-				t.url = url;
-				let frame = getFrame(t);
-				if (!frame) frame = controller.createFrame(t.iframe);
+				if (!url || !frame) return;
 				frame.go(url);
 				urlbar.value = url;
 				updateStar();
@@ -398,83 +305,28 @@
 				if (u) go(u);
 			}
 
-			function switchTab(i) {
-				if (i < 0 || i >= tabs.length) return;
-				active = i;
-				tabs.forEach((t, j) => { t.iframe.style.display = j === i ? "block" : "none"; });
-				renderTabs();
-				const t = tabs[i];
-				urlbar.value = t.url || "";
-				if (!t.url) urlbar.focus();
-				updateStar();
-				syncActive();
-			}
-
-			function closeTab(i) {
-				if (tabs.length <= 1) return;
-				const [t] = tabs.splice(i, 1);
-				t.iframe.remove();
-				const f = getFrame(t);
-				if (f && controller) {
-					const idx = controller.frames.indexOf(f);
-					if (idx >= 0) controller.frames.splice(idx, 1);
-				}
-				if (active >= tabs.length) active = tabs.length - 1;
-				switchTab(active);
-			}
-
-			function renderTabs() {
-				let holder = document.getElementById("tabholder");
-				if (!holder) {
-					holder = document.createElement("div");
-					holder.id = "tabholder";
-					tabsEl.insertBefore(holder, document.getElementById("newtabwrap"));
-				}
-				holder.innerHTML = "";
-				tabs.forEach((t, i) => {
-					const d = document.createElement("div");
-					d.className = "tab" + (i === active ? " active" : "");
-					const label = document.createElement("span");
-					label.textContent = t.title || "New Tab";
-					label.onclick = () => switchTab(i);
-					const x = document.createElement("span");
-					x.className = "tab-x";
-					x.textContent = "×";
-					x.title = "Close tab";
-					x.onclick = (e) => { e.stopPropagation(); closeTab(i); };
-					d.appendChild(label);
-					d.appendChild(x);
-					holder.appendChild(d);
-				});
-			}
-
 			function syncActive() {
-				const t = tabs[active];
-				if (!t || !controller) return;
+				if (!frame) return;
 				try {
-					const href = t.iframe.contentWindow?.location?.href;
+					const href = frameEl.contentWindow?.location?.href;
 					if (href && href.includes(FRAME_PREFIX)) {
 						let rest = href.substring(href.indexOf(FRAME_PREFIX) + FRAME_PREFIX.length);
 						const slash = rest.indexOf("/");
 						if (slash >= 0) rest = rest.substring(slash + 1);
 						const decoded = decodeURIComponent(rest);
 						if (decoded.startsWith("http")) {
-							t.url = decoded;
 							urlbar.value = decoded;
 							updateStar();
 						}
 					}
-					const title = t.iframe.contentDocument?.title;
-					if (title) {
-						t.title = title.slice(0, 60);
-						renderTabs();
-					}
+					const title = frameEl.contentDocument?.title;
+					if (title) document.title = title + " | Obsidian";
 				} catch (e) { }
 			}
 
-			function navBack() { const f = getFrame(tabs[active]); if (f) f.back(); }
-			function navForward() { const f = getFrame(tabs[active]); if (f) f.forward(); }
-			function navReload() { const f = getFrame(tabs[active]); if (f) f.reload(); }
+			function navBack() { if (frame) frame.back(); }
+			function navForward() { if (frame) frame.forward(); }
+			function navReload() { if (frame) frame.reload(); }
 
 			function getBookmarks() {
 				try { return JSON.parse(localStorage.getItem(BOOKMARKS_KEY)) || []; }
@@ -487,20 +339,23 @@
 			}
 			function isBookmarked(url) { return getBookmarks().some((b) => b.url === url); }
 			function updateStar() {
-				const t = tabs[active];
-				starBtn.style.opacity = t?.url && isBookmarked(t.url) ? "1" : "0.5";
+				const current = urlbar.value;
+				starBtn.style.opacity = current && isBookmarked(current) ? "1" : "0.5";
 			}
 			function toggleStar() {
-				const t = tabs[active];
-				if (!t?.url) { toast({ title: "No page to bookmark", message: "Navigate somewhere first!" }); return; }
+				const current = urlbar.value;
+				if (!current || !current.startsWith("http")) {
+					toast({ title: "No page to bookmark", message: "Navigate somewhere first!" });
+					return;
+				}
 				const list = getBookmarks();
-				const idx = list.findIndex((b) => b.url === t.url);
+				const idx = list.findIndex((b) => b.url === current);
 				if (idx >= 0) {
 					list.splice(idx, 1);
 					toast({ title: "Bookmark removed", message: "" });
 				} else {
-					list.push({ title: t.title || t.url, url: t.url });
-					toast({ title: "Bookmarked!", message: t.url });
+					list.push({ title: document.title.replace(" | Obsidian", "") || current, url: current });
+					toast({ title: "Bookmarked!", message: current });
 				}
 				saveBookmarks(list);
 			}
