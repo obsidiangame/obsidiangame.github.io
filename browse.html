@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="sl-theme-dark" lang="en">
 	<head>
 		<!-- initialize externals -->
@@ -273,13 +273,12 @@
 					<div id="settingsmodal">
 						<div id="settingsbox">
 							<h3>Settings</h3>
-							<label for="wispsel">Server (if a site won't load, try another)</label>
-							<select id="wispsel">
-								<option value="wss://anura.pro/">anura.pro (default)</option>
-								<option value="wss://wisp.mercurywork.shop/">mercurywork.shop</option>
+							<label for="srvsel">Server (if a site won't load, try another)</label>
+							<select id="srvsel">
+								<option value="wss://wisp-vj2h.onrender.com/">ours (default)</option>
 								<option value="__custom__">Custom...</option>
 							</select>
-							<input id="wispcustom" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
+							<input id="srvcustom" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
 							<div id="settingsrow">
 								<button class="settingsbtn" id="settingssave">Save</button>
 								<button class="settingsbtn" id="settingscancel">Cancel</button>
@@ -298,14 +297,14 @@
 			<a href="/about.html">About</a>
 		</footer>
 
-		<!-- proxy engine (same build as the embedded demo app) -->
-		<script src="/browse/scramjet/scramjet.js"></script>
-		<script src="/browse/libcurl/libcurl.js"></script>
+		<!-- engine -->
+		<script src="/browse/core/game.js"></script>
+		<script src="/browse/net/netbridge.js"></script>
 		<script src="/browse/controller/controller.api.js"></script>
 
 		<script>
-			const WISP_KEY = "obsidian.proxy.wisp";
-			const BOOKMARKS_KEY = "obsidian.proxy.bookmarks";
+			const SRV_KEY = "obsidian.srv";
+			const MARKS_KEY = "obsidian.marks";
 			const FRAME_PREFIX = "/browse/v/";
 
 			function rot13(s) {
@@ -331,9 +330,9 @@
 			const loadbar = document.getElementById("loadbar");
 			const loadpct = document.getElementById("loadpct");
 			const settingsModal = document.getElementById("settingsmodal");
-			const wispSel = document.getElementById("wispsel");
-			const wispCustom = document.getElementById("wispcustom");
-			const KNOWN_WISPS = ["wss://anura.pro/", "wss://wisp.mercurywork.shop/"];
+			const srvSel = document.getElementById("srvsel");
+			const srvCustom = document.getElementById("srvcustom");
+			const SERVERS = ["wss://wisp-vj2h.onrender.com/"];
 
 			function setLoad(status, pct) {
 				if (loadbar) loadbar.style.width = (pct ?? 0) + "%";
@@ -373,11 +372,11 @@
 						await waitActive(registration, 15000);
 					}
 					setLoad("Loading transport...", 40);
-					const Transport = LibcurlTransport.LibcurlClient ?? LibcurlTransport.default;
-					const transport = new Transport({ wisp: getWisp() });
+					const Transport = NetBridge.NetClient ?? NetBridge.default;
+					const transport = new Transport({ gateway: getServer() });
 					await transport.init();
 					setLoad("Starting controller...", 70);
-					controller = new $scramjetController.Controller({
+					controller = new $zxController.Controller({
 						serviceworker: navigator.serviceWorker.controller ?? registration.active,
 						transport,
 						config: {
@@ -432,11 +431,11 @@
 			function navReload() { if (frame) frame.reload(); }
 
 			function getBookmarks() {
-				try { return JSON.parse(localStorage.getItem(BOOKMARKS_KEY)) || []; }
+				try { return JSON.parse(localStorage.getItem(MARKS_KEY)) || []; }
 				catch (e) { return []; }
 			}
 			function saveBookmarks(list) {
-				localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(list));
+				localStorage.setItem(MARKS_KEY, JSON.stringify(list));
 				renderBookmarks();
 				updateStar();
 			}
@@ -490,19 +489,19 @@
 				});
 			}
 
-			function getWisp() {
-				return localStorage.getItem(WISP_KEY) || "wss://anura.pro/";
+			function getServer() {
+				return localStorage.getItem(SRV_KEY) || "wss://wisp-vj2h.onrender.com/";
 			}
 
 			function openSettings() {
-				const cur = getWisp();
-				if (KNOWN_WISPS.includes(cur)) {
-					wispSel.value = cur;
-					wispCustom.style.display = "none";
+				const cur = getServer();
+				if (SERVERS.includes(cur)) {
+					srvSel.value = cur;
+					srvCustom.style.display = "none";
 				} else {
-					wispSel.value = "__custom__";
-					wispCustom.value = cur;
-					wispCustom.style.display = "";
+					srvSel.value = "__custom__";
+					srvCustom.value = cur;
+					srvCustom.style.display = "";
 				}
 				settingsModal.classList.add("show");
 			}
@@ -512,21 +511,21 @@
 			}
 
 			function saveSettings() {
-				let wisp = wispSel.value;
-				if (wisp === "__custom__") wisp = wispCustom.value.trim();
-				if (!wisp) {
+				let srv = srvSel.value;
+				if (srv === "__custom__") srv = srvCustom.value.trim();
+				if (!srv) {
 					toast({ title: "Invalid server", message: "Check the server address" });
 					return;
 				}
-				if (!/^ws:\/\/|^wss:\/\//.test(wisp)) wisp = "wss://" + wisp;
-				if (!wisp.endsWith("/")) wisp += "/";
-				localStorage.setItem(WISP_KEY, wisp);
+				if (!/^ws:\/\/|^wss:\/\//.test(srv)) srv = "wss://" + srv;
+				if (!srv.endsWith("/")) srv += "/";
+				localStorage.setItem(SRV_KEY, srv);
 				toast({ title: "Server saved", message: "Reloading..." });
 				setTimeout(() => location.reload(), 800);
 			}
 
-			wispSel.addEventListener("change", () => {
-				wispCustom.style.display = wispSel.value === "__custom__" ? "" : "none";
+			srvSel.addEventListener("change", () => {
+				srvCustom.style.display = srvSel.value === "__custom__" ? "" : "none";
 			});
 			settingsModal.addEventListener("click", (e) => {
 				if (e.target === settingsModal) closeSettings();

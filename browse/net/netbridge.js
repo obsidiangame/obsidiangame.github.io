@@ -1,4 +1,4 @@
-(function(g,f){if(typeof exports=="object"&&typeof module<"u"){module.exports=f(require)}else if("function"==typeof define && define.amd){define("LibcurlTransport",["fs","path"],function(_d_0,_d_1){var d={"fs": _d_0,"path": _d_1},r=function(m){if(m in d) return d[m];if(typeof require=="function") return require(m);throw new Error("Cannot find module '"+m+"'")};return f(r)})}else {var gN={"fs":"fs","path":"path"},gReq=function(r){var mod = r in gN ? g[gN[r]] : g[r]; return mod };g["LibcurlTransport"]=f(gReq)}}(typeof globalThis < "u" ? globalThis : typeof self < "u" ? self : this,function(require){var exports={};var __exports=exports;var module={exports};
+(function(g,f){if(typeof exports=="object"&&typeof module<"u"){module.exports=f(require)}else if("function"==typeof define && define.amd){define("NetBridge",["fs","path"],function(_d_0,_d_1){var d={"fs": _d_0,"path": _d_1},r=function(m){if(m in d) return d[m];if(typeof require=="function") return require(m);throw new Error("Cannot find module '"+m+"'")};return f(r)})}else {var gN={"fs":"fs","path":"path"},gReq=function(r){var mod = r in gN ? g[gN[r]] : g[r]; return mod };g["NetBridge"]=f(gReq)}}(typeof globalThis < "u" ? globalThis : typeof self < "u" ? self : this,function(require){var exports={};var __exports=exports;var module={exports};
 "use strict";
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -21,13 +21,13 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
-  LibcurlClient: () => LibcurlClient,
-  default: () => LibcurlClient
+  NetClient: () => NetClient,
+  default: () => NetClient
 });
 module.exports = __toCommonJS(main_exports);
 
-// node_modules/.pnpm/libcurl.js@0.7.4/node_modules/libcurl.js/libcurl_full.mjs
-var libcurl = function() {
+// node_modules/.pnpm/netbridge.js@0.7.4/node_modules/netbridge.js/netbridge_full.mjs
+var netbridge = function() {
   var Module = typeof Module != "undefined" ? Module : {};
   var moduleOverrides = Object.assign({}, Module);
   var arguments_ = [];
@@ -2973,8 +2973,8 @@ var libcurl = function() {
           WebSocketConstructor = WebSocket;
         }
         try {
-          if (api.transport === "wisp") {
-            ws = new WispWebSocket(url);
+          if (api.transport === "gateway") {
+            ws = new TcpWebSocket(url);
           } else if (api.transport === "wsproxy") {
             ws = new WebSocket(url);
           } else if (typeof api.transport === "string") {
@@ -5148,7 +5148,7 @@ var libcurl = function() {
     let packet = concat_uint8array(packet_type_array, stream_id_array, payload);
     return packet;
   }
-  class WispStream extends EventTarget {
+  class TcpStream extends EventTarget {
     constructor(hostname, port, websocket, buffer_size, stream_id, connection, stream_type) {
       super();
       this.hostname = hostname;
@@ -5187,22 +5187,22 @@ var libcurl = function() {
       delete this.connection.active_streams[this.stream_id];
     }
   }
-  class WispConnection extends EventTarget {
-    constructor(wisp_url) {
+  class TcpConnection extends EventTarget {
+    constructor(srv_url) {
       super();
-      this.wisp_url = wisp_url;
+      this.srv_url = srv_url;
       this.max_buffer_size = null;
       this.active_streams = {};
       this.connected = false;
       this.connecting = false;
       this.next_stream_id = 1;
-      if (!this.wisp_url.endsWith("/")) {
-        throw "wisp endpoints must end with a trailing forward slash";
+      if (!this.srv_url.endsWith("/")) {
+        throw "gateway endpoints must end with a trailing forward slash";
       }
       this.connect_ws();
     }
     connect_ws() {
-      this.ws = new WebSocket(this.wisp_url);
+      this.ws = new WebSocket(this.srv_url);
       this.ws.binaryType = "arraybuffer";
       this.connecting = true;
       this.ws.addEventListener("error", (event) => {
@@ -5242,7 +5242,7 @@ var libcurl = function() {
       let stream_type = type === "udp" ? 2 : 1;
       let stream_id = this.next_stream_id;
       this.next_stream_id++;
-      let stream = new WispStream(hostname, port, this.ws, this.max_buffer_size, stream_id, this, stream_type);
+      let stream = new TcpStream(hostname, port, this.ws, this.max_buffer_size, stream_id, this, stream_type);
       stream.open = this.connected;
       let type_array = array_from_uint(stream_type, 1);
       let port_array = array_from_uint(port, 2);
@@ -5256,7 +5256,7 @@ var libcurl = function() {
     on_ws_msg(event) {
       let packet = new Uint8Array(event.data);
       if (packet.length < 5) {
-        warn_msg(`wisp client warning: received a packet which is too short`);
+        warn_msg(`gateway client warning: received a packet which is too short`);
         return;
       }
       let packet_type = packet[0];
@@ -5264,7 +5264,7 @@ var libcurl = function() {
       let payload = packet.slice(5);
       let stream = this.active_streams[stream_id];
       if (typeof stream === "undefined" && stream_id !== 0) {
-        warn_msg(`wisp client warning: received a ${packet_names[packet_type]} packet for a stream which doesn't exist`);
+        warn_msg(`gateway client warning: received a ${packet_names[packet_type]} packet for a stream which doesn't exist`);
         return;
       }
       if (packet_type === packet_types.DATA) {
@@ -5277,12 +5277,12 @@ var libcurl = function() {
       } else if (packet_type === packet_types.CLOSE) {
         this.close_stream(stream, payload[0]);
       } else {
-        warn_msg(`wisp client warning: receive an invalid packet of type ${packet_type}`);
+        warn_msg(`gateway client warning: receive an invalid packet of type ${packet_type}`);
       }
     }
   }
-  const _wisp_connections = {};
-  class WispWebSocket extends EventTarget {
+  const _connections = {};
+  class TcpWebSocket extends EventTarget {
     constructor(url, protocols) {
       super();
       this.url = url;
@@ -5311,12 +5311,12 @@ var libcurl = function() {
       this.init_connection();
     }
     on_conn_close() {
-      delete _wisp_connections[this.real_url];
+      delete _connections[this.real_url];
     }
     init_connection() {
-      this.connection = _wisp_connections[this.real_url];
+      this.connection = _connections[this.real_url];
       if (!this.connection) {
-        this.connection = new WispConnection(this.real_url);
+        this.connection = new TcpConnection(this.real_url);
         this.connection.addEventListener("open", () => {
           this.init_stream();
         });
@@ -5326,13 +5326,13 @@ var libcurl = function() {
         this.connection.addEventListener("error", () => {
           this.on_conn_close();
         });
-        _wisp_connections[this.real_url] = this.connection;
+        _connections[this.real_url] = this.connection;
       } else if (!this.connection.connected) {
         this.connection.addEventListener("open", () => {
           this.init_stream();
         });
       } else {
-        this.connection = _wisp_connections[this.real_url];
+        this.connection = _connections[this.real_url];
         this.init_stream();
       }
     }
@@ -5589,10 +5589,10 @@ var libcurl = function() {
     510: "Not Extended",
     511: "Network Authentication Required"
   };
-  const copyright_notice = `libcurl.js is licensed under the GNU LGPL v3. You can find the license text and source code at the project's git repository: https://github.com/ading2210/libcurl.js
+  const copyright_notice = `netbridge.js is licensed under the GNU LGPL v3. You can find the license text and source code at the project's git repository: https://github.com/ading2210/netbridge.js
 
 Several C libraries are used, and their licenses are listed below:
-- libcurl: curl License (https://curl.se/docs/copyright.html)
+- netbridge: curl License (https://curl.se/docs/copyright.html)
 - mbedtls: Apache License 2.0 (https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE)
 - cjson: MIT License (https://github.com/DaveGamble/cJSON/blob/master/LICENSE)
 - zlib: zlib License (https://www.zlib.net/zlib_license.html)
@@ -5692,8 +5692,8 @@ Several C libraries are used, and their licenses are listed below:
       }, 0);
     }
     event_loop_func() {
-      let libcurl_active = _session_get_active(this.session_ptr);
-      if (libcurl_active || this.active_requests) {
+      let netbridge_active = _session_get_active(this.session_ptr);
+      if (netbridge_active || this.active_requests) {
         _session_perform(this.session_ptr);
       } else {
         clearInterval(this.event_loop);
@@ -5991,7 +5991,7 @@ Several C libraries are used, and their licenses are listed below:
         request_options.headers["Sec-Websocket-Protocol"] = this.protocols.join(", ");
       }
       if (this.options.verbose) {
-        request_options._libcurl_verbose = 1;
+        request_options._netbridge_verbose = 1;
       }
       this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback);
       c_func(_http_set_options, [this.http_handle, JSON.stringify(request_options), null, 0]);
@@ -6256,14 +6256,14 @@ Several C libraries are used, and their licenses are listed below:
   var version_dict = null;
   var api = null;
   var main_session = null;
-  const libcurl_version = "0.7.4";
-  const wisp_version = "1.1.1";
+  const netbridge_version = "0.7.4";
+  const srv_version = "1.1.1";
   function check_loaded(check_websocket) {
     if (!wasm_ready) {
-      throw new Error("wasm not loaded yet, please call libcurl.load_wasm first");
+      throw new Error("wasm not loaded yet, please call netbridge.load_wasm first");
     }
     if (!websocket_url && check_websocket) {
-      throw new Error("websocket proxy url not set, please call libcurl.set_websocket");
+      throw new Error("websocket proxy url not set, please call netbridge.set_websocket");
     }
   }
   function set_websocket_url(url) {
@@ -6284,8 +6284,8 @@ Several C libraries are used, and their licenses are listed below:
     let version_str = UTF8ToString(version_ptr);
     _free(version_ptr);
     version_dict = JSON.parse(version_str);
-    version_dict.lib = libcurl_version;
-    version_dict.wisp = wisp_version;
+    version_dict.lib = netbridge_version;
+    version_dict.gateway = srv_version;
     return version_dict;
   }
   function get_cacert() {
@@ -6301,7 +6301,7 @@ Several C libraries are used, and their licenses are listed below:
     if (!main_session && websocket_url) {
       setup_main_session();
     }
-    let load_event = new Event("libcurl_load");
+    let load_event = new Event("netbridge_load");
     api.events.dispatchEvent(load_event);
     api.onload();
     if (ENVIRONMENT_IS_WEB) {
@@ -6309,7 +6309,7 @@ Several C libraries are used, and their licenses are listed below:
     }
   }
   function abort_callback(reason) {
-    let abort_event = new CustomEvent("libcurl_abort", { detail: reason });
+    let abort_event = new CustomEvent("netbridge_abort", { detail: reason });
     api.events.dispatchEvent(abort_event);
     if (ENVIRONMENT_IS_WEB) {
       document.dispatchEvent(abort_event);
@@ -6324,10 +6324,10 @@ Several C libraries are used, and their licenses are listed below:
     }
     return new Promise((resolve, reject) => {
       if (wasm_ready) return resolve();
-      api.events.addEventListener("libcurl_load", () => {
+      api.events.addEventListener("netbridge_load", () => {
         resolve();
       }, { once: true });
-      api.events.addEventListener("libcurl_abort", (event) => {
+      api.events.addEventListener("netbridge_abort", (event) => {
         reject(event.detail);
       }, { once: true });
     });
@@ -6339,12 +6339,12 @@ Several C libraries are used, and their licenses are listed below:
     load_wasm,
     get_cacert,
     get_error_string: get_error_str,
-    wisp: {
-      wisp_connections: _wisp_connections,
-      WispConnection,
-      WispWebSocket
+    gateway: {
+      srv_connections: _connections,
+      TcpConnection,
+      TcpWebSocket
     },
-    transport: "wisp",
+    transport: "gateway",
     WebSocket: FakeWebSocket,
     CurlWebSocket,
     TLSSocket,
@@ -6391,23 +6391,23 @@ Several C libraries are used, and their licenses are listed below:
 }();
 
 // src/main.ts
-var LibcurlClient = class {
+var NetClient = class {
   session;
-  wisp;
+  gateway;
   proxy;
   transport;
   connections;
   constructor(options) {
-    this.wisp = options.wisp ?? options.websocket;
+    this.gateway = options.gateway ?? options.websocket;
     this.transport = options.transport;
     this.proxy = options.proxy;
     this.connections = options.connections;
-    if (!this.wisp.endsWith("/")) {
+    if (!this.gateway.endsWith("/")) {
       throw new TypeError(
         "The Websocket URL must end with a trailing forward slash."
       );
     }
-    if (!this.wisp.startsWith("ws://") && !this.wisp.startsWith("wss://")) {
+    if (!this.gateway.startsWith("ws://") && !this.gateway.startsWith("wss://")) {
       throw new TypeError(
         "The Websocket URL must use the ws:// or wss:// protocols."
       );
@@ -6422,24 +6422,24 @@ var LibcurlClient = class {
     }
   }
   async init() {
-    if (this.transport) libcurl.transport = this.transport;
-    if (!libcurl.ready) {
+    if (this.transport) netbridge.transport = this.transport;
+    if (!netbridge.ready) {
       await new Promise((resolve, reject) => {
-        libcurl.onload = () => {
-          console.log("loaded libcurl.js v" + libcurl.version.lib);
+        netbridge.onload = () => {
+          console.log("loaded netbridge.js v" + netbridge.version.lib);
           this.ready = true;
           resolve(null);
         };
       });
     }
-    libcurl.set_websocket(this.wisp);
-    this.session = new libcurl.HTTPSession({
+    netbridge.set_websocket(this.gateway);
+    this.session = new netbridge.HTTPSession({
       proxy: this.proxy
     });
     if (this.connections) this.session.set_connections(...this.connections);
-    this.ready = libcurl.ready;
+    this.ready = netbridge.ready;
     if (this.ready) {
-      console.log("running libcurl.js v" + libcurl.version.lib);
+      console.log("running netbridge.js v" + netbridge.version.lib);
       return;
     }
   }
@@ -6470,7 +6470,7 @@ var LibcurlClient = class {
     for (let [key, value] of requestHeaders) {
       headersObj[key] = value;
     }
-    let socket = new libcurl.WebSocket(url.toString(), protocols, {
+    let socket = new netbridge.WebSocket(url.toString(), protocols, {
       headers: headersObj
     });
     socket.binaryType = "arraybuffer";
