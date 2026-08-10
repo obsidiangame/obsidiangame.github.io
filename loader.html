@@ -99,9 +99,6 @@
 				}
 				if (game) {
 					currentGame = game;
-					if (game[3] === "sppa" && ["11", "emu", "gba", "scratch1", "sb2toswf", "ruffle", "turbowarp"].indexOf(game[0]) === -1) {
-						game[3] = "semag";
-					}
 					const gameFrame = document.getElementById("gameFrame");
 					const loadScreen = document.getElementById("loadscreen");
 					let progress = 0;
