@@ -306,7 +306,20 @@
 		<script>
 			const WISP_KEY = "obsidian.proxy.wisp";
 			const BOOKMARKS_KEY = "obsidian.proxy.bookmarks";
-			const FRAME_PREFIX = "/browse/~/sj/";
+			const FRAME_PREFIX = "/browse/v/";
+
+			function rot13(s) {
+				return s.replace(/[a-zA-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + (c.toLowerCase() < "n" ? 13 : -13)));
+			}
+			function codecEncode(e) {
+				if (!e) return e;
+				return rot13(btoa(unescape(encodeURIComponent(e))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""));
+			}
+			function codecDecode(e) {
+				if (!e) return e;
+				const b = rot13(e).replace(/-/g, "+").replace(/_/g, "/");
+				return decodeURIComponent(escape(atob(b + "=".repeat((4 - (b.length % 4)) % 4))));
+			}
 			let controller = null;
 			let frame = null;
 
@@ -367,7 +380,10 @@
 					controller = new $scramjetController.Controller({
 						serviceworker: navigator.serviceWorker.controller ?? registration.active,
 						transport,
-						config: { prefix: FRAME_PREFIX }
+						config: {
+							prefix: FRAME_PREFIX,
+							codec: { encode: codecEncode, decode: codecDecode }
+						}
 					});
 					await controller.wait();
 					setLoad("Done!", 100);
@@ -398,9 +414,9 @@
 					const href = frameEl.contentWindow?.location?.href;
 					if (href && href.includes(FRAME_PREFIX)) {
 						let rest = href.substring(href.indexOf(FRAME_PREFIX) + FRAME_PREFIX.length);
-						const slash = rest.indexOf("/");
+						const slash = rest.lastIndexOf("/");
 						if (slash >= 0) rest = rest.substring(slash + 1);
-						const decoded = decodeURIComponent(rest);
+						const decoded = codecDecode(rest);
 						if (decoded.startsWith("http")) {
 							urlbar.value = decoded;
 							updateStar();
