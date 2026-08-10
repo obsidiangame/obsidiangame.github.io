@@ -89,13 +89,16 @@
 				font-size: 12px;
 				cursor: pointer;
 				color: var(--textcolor);
-				max-width: 160px;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
+				max-width: 180px;
 			}
 			.bookmark:hover {
 				background-color: var(--inputbg);
+			}
+			.bookmark-title {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				max-width: 130px;
 			}
 			.bookmark-x {
 				font-weight: bold;
@@ -104,6 +107,31 @@
 			}
 			.bookmark-x:hover {
 				opacity: 1;
+			}
+			.bmenu {
+				position: fixed;
+				z-index: 1000;
+				background: var(--uibg);
+				border: 1px solid var(--inputborder);
+				border-radius: 6px;
+				padding: 4px;
+				min-width: 130px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+			}
+			.bmenu-item {
+				display: block;
+				width: 100%;
+				text-align: left;
+				background: none;
+				border: none;
+				color: var(--textcolor);
+				font-size: 13px;
+				padding: 6px 10px;
+				border-radius: 4px;
+				cursor: pointer;
+			}
+			.bmenu-item:hover {
+				background: var(--inputbg);
 			}
 			#emptybookmarks {
 				font-size: 12px;
@@ -261,6 +289,11 @@
 					</button>
 				</div>
 				<div id="bookmarks"><span id="emptybookmarks">No bookmarks yet - click the star to save a page.</span></div>
+				<div id="bmenu" hidden>
+					<button class="bmenu-item" id="bmenuOpen">Open</button>
+					<button class="bmenu-item" id="bmenuRename">Rename...</button>
+					<button class="bmenu-item" id="bmenuRemove">Remove</button>
+				</div>
 				<div id="frames">
 					<iframe id="frameEl" sandbox="allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin" allow="fullscreen"></iframe>
 					<div id="loadscreen">
@@ -442,7 +475,10 @@
 			function isBookmarked(url) { return getBookmarks().some((b) => b.url === url); }
 			function updateStar() {
 				const current = urlbar.value;
-				starBtn.style.opacity = current && isBookmarked(current) ? "1" : "0.5";
+				const active = current && isBookmarked(current);
+				starBtn.style.opacity = active ? "1" : "0.5";
+				const svg = starBtn.querySelector("svg");
+				if (svg) svg.style.fill = active ? "currentColor" : "none";
 			}
 			function toggleStar() {
 				const current = urlbar.value;
@@ -471,12 +507,15 @@
 				list.forEach((b, i) => {
 					const a = document.createElement("button");
 					a.className = "bookmark";
-					a.textContent = b.title || b.url;
 					a.title = b.url;
 					a.onclick = () => go(b.url);
+					a.oncontextmenu = (e) => openBmenu(e, i);
+					const t = document.createElement("span");
+					t.className = "bookmark-title";
+					t.textContent = b.title || b.url;
 					const x = document.createElement("span");
 					x.className = "bookmark-x";
-					x.textContent = "Ã—";
+					x.textContent = "\u00d7";
 					x.title = "Remove bookmark";
 					x.onclick = (e) => {
 						e.stopPropagation();
@@ -484,9 +523,68 @@
 						l.splice(i, 1);
 						saveBookmarks(l);
 					};
+					a.appendChild(t);
 					a.appendChild(x);
 					bookmarksEl.appendChild(a);
 				});
+			}
+
+			const bmenu = document.getElementById("bmenu");
+			const bmenuOpen = document.getElementById("bmenuOpen");
+			const bmenuRename = document.getElementById("bmenuRename");
+			const bmenuRemove = document.getElementById("bmenuRemove");
+			let bmenuTarget = -1;
+
+			function openBmenu(e, i) {
+				bmenuTarget = i;
+				bmenu.hidden = false;
+				bmenu.style.left = Math.min(e.clientX, window.innerWidth - bmenu.offsetWidth - 4) + "px";
+				bmenu.style.top = Math.min(e.clientY, window.innerHeight - bmenu.offsetHeight - 4) + "px";
+				e.preventDefault();
+			}
+			function closeBmenu() {
+				bmenu.hidden = true;
+				bmenuTarget = -1;
+			}
+			document.addEventListener("click", (e) => {
+				if (bmenu.hidden) return;
+				if (!bmenu.contains(e.target)) closeBmenu();
+			});
+			bmenuOpen.onclick = () => {
+				const b = getBookmarks()[bmenuTarget];
+				closeBmenu();
+				if (b) go(b.url);
+			};
+			bmenuRename.onclick = () => {
+				const b = getBookmarks()[bmenuTarget];
+				closeBmenu();
+				if (!b) return;
+				const t = prompt("New name for bookmark:", b.title || b.url);
+				if (t === null) return;
+				const l = getBookmarks();
+				const idx = l.findIndex((x) => x.url === b.url);
+				if (idx >= 0) {
+					l[idx].title = t.trim() || b.url;
+					saveBookmarks(l);
+				}
+			};
+			bmenuRemove.onclick = () => {
+				const l = getBookmarks();
+				l.splice(bmenuTarget, 1);
+				saveBookmarks(l);
+				closeBmenu();
+			};
+
+			function migrateMarks() {
+				try {
+					if (!localStorage.getItem(MARKS_KEY)) {
+						const old = localStorage.getItem("obsidian.proxy.bookmarks");
+						if (old) {
+							localStorage.setItem(MARKS_KEY, old);
+							localStorage.removeItem("obsidian.proxy.bookmarks");
+						}
+					}
+				} catch (e) { }
 			}
 
 			function getServer() {
@@ -535,7 +633,9 @@
 
 			urlbar.addEventListener("keydown", (e) => { if (e.key === "Enter") goUrl(); });
 			window.addEventListener("load", () => {
+				migrateMarks();
 				renderBookmarks();
+				updateStar();
 				setInterval(syncActive, 500);
 				init();
 			});
