@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html class="sl-theme-dark" lang="en">
 	<head>
-		<!-- initialize theme vars
-    https://coolors.co/10002b-240046-3c096c-5a189a-7b2cbf-9d4edd-c77dff-e0aaff -->
-
 		<!-- initialize externals -->
 		<script src=" https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js "></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
@@ -11,29 +8,6 @@
 		<!-- initialize my stuff -->
 		<script src="/js/all.min.js?v=2"></script>
 		<script src="/js/main.js?v=3"></script>
-		<script>
-			document.addEventListener("DOMContentLoaded", () => {
-				const proxyFrame = document.getElementById("proxyFrame");
-				const loadScreen = document.getElementById("loadscreen");
-				proxyFrame.onload = () => {
-					proxyFrame.style.opacity = "1";
-					setTimeout(() => {
-						loadScreen.style.opacity = "0";
-						setTimeout(() => loadScreen.remove(), 500);
-					}, 250);
-				};
-				proxyFrame.style.opacity = "0";
-				proxyFrame.style.transition = "opacity 0.5s ease";
-				document.getElementById("fullscreen").addEventListener("click", () => {
-					const frame = document.getElementById("proxyFrame");
-					if (document.fullscreenElement) {
-						document.exitFullscreen();
-					} else {
-						frame.requestFullscreen();
-					}
-				});
-			});
-		</script>
 
 		<link rel="stylesheet" href="/style.css?v=2" />
 		<link rel="manifest" href="/manifest.json" />
@@ -41,43 +15,217 @@
 		<!-- seo + other things -->
 		<title>Proxy | Obsidian</title>
 		<link rel="icon" href="/favicon.ico" />
+
+		<style>
+			#proxybar {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				padding: 10px 12px;
+				background-color: var(--uibg);
+				border-bottom: 1px solid var(--inputborder);
+				box-sizing: border-box;
+			}
+			.navbtn {
+				background: none;
+				cursor: pointer;
+				padding: 6px;
+				border-radius: 8px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				opacity: 0.85;
+			}
+			.navbtn:hover {
+				opacity: 1;
+				background-color: var(--inputbg);
+			}
+			.navbtn svg {
+				width: 20px;
+				height: 20px;
+				fill: var(--textcolor);
+				stroke: var(--textcolor);
+			}
+			#urlbar {
+				flex: 1 1 auto;
+				background-color: var(--inputbg);
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				padding: 9px 14px;
+				font-size: 15px;
+				text-align: left;
+				color: var(--textcolor);
+				min-width: 0;
+			}
+			#urlbar::placeholder {
+				color: var(--textcolor);
+				opacity: 0.5;
+			}
+			#urlbar:focus {
+				border-color: #9d4edd;
+			}
+			#tabsbar {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				padding: 8px 12px 0;
+				background-color: var(--uibg);
+				overflow-x: auto;
+				box-sizing: border-box;
+			}
+			#tabholder {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				flex: 0 0 auto;
+			}
+			.tab {
+				flex: 0 0 auto;
+				max-width: 200px;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 7px 10px;
+				border-radius: 8px 8px 0 0;
+				cursor: pointer;
+				font-size: 13px;
+				background-color: var(--inputbg);
+				opacity: 0.7;
+				border: 1px solid var(--inputborder);
+				border-bottom: none;
+				box-sizing: border-box;
+				user-select: none;
+			}
+			.tab:hover {
+				opacity: 0.9;
+			}
+			.tab.active {
+				opacity: 1;
+				background-color: #5a189a;
+			}
+			.tab span:first-child {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.tab-x {
+				color: var(--textcolor);
+				opacity: 0.7;
+				padding: 0 2px;
+				font-weight: bold;
+			}
+			.tab-x:hover {
+				opacity: 1;
+			}
+			#newtab {
+				flex: 0 0 auto;
+				background: none;
+				cursor: pointer;
+				font-size: 18px;
+				padding: 4px 12px;
+				border-radius: 8px;
+				color: var(--textcolor);
+				opacity: 0.8;
+			}
+			#newtab:hover {
+				opacity: 1;
+				background-color: var(--inputbg);
+			}
+			#bookmarks {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				padding: 8px 12px;
+				background-color: var(--uibg);
+				border-bottom: 1px solid var(--inputborder);
+				overflow-x: auto;
+				box-sizing: border-box;
+			}
+			.bookmark {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				background: none;
+				border: 1px solid var(--inputborder);
+				border-radius: 6px;
+				padding: 5px 8px;
+				font-size: 12px;
+				cursor: pointer;
+				color: var(--textcolor);
+				max-width: 160px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.bookmark:hover {
+				background-color: var(--inputbg);
+			}
+			.bookmark-x {
+				font-weight: bold;
+				opacity: 0.7;
+				padding: 0 2px;
+			}
+			.bookmark-x:hover {
+				opacity: 1;
+			}
+			#emptybookmarks {
+				font-size: 12px;
+				opacity: 0.5;
+			}
+			#frames {
+				flex: 1 1 auto;
+				min-height: 0;
+				position: relative;
+				overflow: hidden;
+			}
+			.frame {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				border: 0;
+				display: none;
+			}
+			#loadscreen {
+				position: absolute;
+				inset: 0;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 18px;
+				background-color: var(--uibg);
+				z-index: 5;
+				transition: opacity 0.5s ease;
+			}
+			#loadlogo {
+				width: 96px;
+				height: 96px;
+				border-radius: 16px;
+			}
+			#loadbarwrap {
+				width: 220px;
+				height: 8px;
+				background-color: var(--inputbg);
+				border-radius: 4px;
+				overflow: hidden;
+			}
+			#loadbar {
+				width: 0%;
+				height: 100%;
+				background-color: #9d4edd;
+				transition: width 0.3s ease;
+			}
+			#loadpct {
+				font-size: 14px;
+				opacity: 0.7;
+			}
+		</style>
 	</head>
-	<alerts>
-		<div id="toast"></div>
-		<script>
-			$.getJSON("data/changelog.json", (data) => {
-				if (localStorage.getItem("obsidian.version") != data.version) {
-					toast({ title: "New Update!", message: data.desc, time: data.timestamp });
-					localStorage.setItem("obsidian.version", data.version);
-				}
-			});
-			function toast(message, type) {
-				const toast = document.getElementById("toast");
-				toast.innerHTML = `<div class=samerow><h1>${message.title} - ${timeAgo(new Date(message.time * 1000))}</h1></div><p>${message.message}</p>`;
-				toast.style.animation = "toastFade 6s";
-			}
-			function timeAgo(input) {
-				const date = input instanceof Date ? input : new Date(input);
-				const formatter = new Intl.RelativeTimeFormat("en");
-				const ranges = {
-					years: 3600 * 24 * 365,
-					months: 3600 * 24 * 30,
-					weeks: 3600 * 24 * 7,
-					days: 3600 * 24,
-					hours: 3600,
-					minutes: 60,
-					seconds: 1,
-				};
-				const secondsElapsed = (date.getTime() - Date.now()) / 1000;
-				for (let key in ranges) {
-					if (ranges[key] < Math.abs(secondsElapsed)) {
-						const delta = secondsElapsed / ranges[key];
-						return formatter.format(Math.round(delta), key);
-					}
-				}
-			}
-		</script>
-	</alerts>
 	<body>
 		<header>
 			<a href="/index.html">Home</a>
@@ -90,24 +238,38 @@
 		</header>
 		<main>
 			<div id="gamecontainer">
-				<div id="frameWrap">
-					<iframe id="proxyFrame" src="/proxy/" allow="fullscreen" sandbox="allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin"></iframe>
+				<div id="proxybar">
+					<button class="navbtn" id="back" title="Back" onclick="navBack()">
+						<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+					</button>
+					<button class="navbtn" id="forward" title="Forward" onclick="navForward()">
+						<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
+					</button>
+					<button class="navbtn" id="reload" title="Reload" onclick="navReload()">
+						<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+					</button>
+					<input id="urlbar" placeholder="Search or enter address..." autocomplete="off" spellcheck="false" />
+					<button class="navbtn" id="go" title="Go" onclick="goUrl()">
+						<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
+					</button>
+					<button class="navbtn" id="star" title="Bookmark this page" onclick="toggleStar()">
+						<svg viewBox="0 0 24 24" fill="none"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+					</button>
+					<button class="navbtn" id="settings" title="Wisp server / advanced settings" onclick="openSettings()">
+						<svg viewBox="0 0 24 24" fill="none"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.61 3.61 0 0 1 8.4 12c0-1.98 1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+					</button>
+				</div>
+				<div id="tabsbar">
+					<div id="newtabwrap"><button id="newtab" title="New tab" onclick="addTab()">+</button></div>
+				</div>
+				<div id="bookmarks"><span id="emptybookmarks">No bookmarks yet - click the star to save a page.</span></div>
+				<div id="frames">
 					<div id="loadscreen">
 						<img id="loadlogo" src="/favicon.png" />
 						<div id="loadbarwrap">
 							<div id="loadbar"></div>
 						</div>
 						<p id="loadpct">Loading proxy..</p>
-					</div>
-				</div>
-				<div id="infobox">
-					<img src="/proxy/icon.png" />
-					<h2 id="gameName">Proxy</h2>
-				</div>
-				<div id="controlsbar">
-					<span class="ctrllabel">Tip: open a site in the bar above. Change the wisp server in Settings if a site won't load.</span>
-					<div class="opposite">
-						<img class="button" id="fullscreen" src="/img/fullscreen.svg">
 					</div>
 				</div>
 			</div>
@@ -120,5 +282,265 @@
 			<a href="/support.html">Donate</a>
 			<a href="/about.html">About</a>
 		</footer>
+
+		<!-- proxy engine (same build as the embedded demo app) -->
+		<script src="/proxy/scramjet/scramjet.js"></script>
+		<script src="/proxy/libcurl/libcurl.js"></script>
+		<script src="/proxy/controller/controller.api.js"></script>
+
+		<script>
+			const WISP_KEY = "obsidian.proxy.wisp";
+			const BOOKMARKS_KEY = "obsidian.proxy.bookmarks";
+			const FRAME_PREFIX = "/proxy/~/sj/";
+			let controller = null;
+			let tabs = [];
+			let active = 0;
+			let loadingBar = null;
+
+			const urlbar = document.getElementById("urlbar");
+			const framesEl = document.getElementById("frames");
+			const tabsEl = document.getElementById("tabsbar");
+			const bookmarksEl = document.getElementById("bookmarks");
+			const starBtn = document.getElementById("star");
+			const loadscreen = document.getElementById("loadscreen");
+			const loadbar = document.getElementById("loadbar");
+			const loadpct = document.getElementById("loadpct");
+
+			function setLoad(status, pct) {
+				if (loadbar) loadbar.style.width = (pct ?? 0) + "%";
+				if (loadpct) loadpct.textContent = status;
+			}
+
+			function normalize(input) {
+				const s = input.trim();
+				if (!s) return null;
+				if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(s)) return s;
+				if (/\s/.test(s)) return "https://www.google.com/search?q=" + encodeURIComponent(s);
+				return "https://" + s;
+			}
+
+			async function init() {
+				if (!("serviceWorker" in navigator)) {
+					setLoad("Your browser doesn't support service workers.", 0);
+					return;
+				}
+				try {
+					setLoad("Installing proxy service worker...", 10);
+					const registration = await navigator.serviceWorker.register("/proxy/sw.js", { scope: "/proxy/" });
+					if (!navigator.serviceWorker.controller) {
+						setLoad("Waiting for service worker...", 25);
+						await new Promise((resolve, reject) => {
+							const timer = setTimeout(() => reject(new Error("Service worker took too long")), 15000);
+							navigator.serviceWorker.addEventListener("controllerchange", () => { clearTimeout(timer); resolve(); }, { once: true });
+						});
+					} else {
+						await navigator.serviceWorker.ready;
+					}
+					setLoad("Loading transport...", 40);
+					const Transport = LibcurlTransport.LibcurlClient ?? LibcurlTransport.default;
+					const transport = new Transport({ wisp: localStorage.getItem(WISP_KEY) || "wss://anura.pro/" });
+					await transport.init();
+					setLoad("Starting controller...", 70);
+					const sw = navigator.serviceWorker.controller ?? registration.active;
+					controller = new $scramjetController.Controller({
+						serviceworker: sw,
+						transport,
+						config: { prefix: FRAME_PREFIX }
+					});
+					await controller.wait();
+					setLoad("Done!", 100);
+					loadscreen.style.opacity = "0";
+					setTimeout(() => loadscreen.remove(), 500);
+					addTab();
+				} catch (err) {
+					console.error("Proxy init failed:", err);
+					setLoad("Proxy failed to load: " + (err?.message || err), 0);
+				}
+			}
+
+			function getFrame(tab) {
+				return controller?.frames.find((f) => f.element === tab.iframe) || null;
+			}
+
+			function addTab(url) {
+				const iframe = document.createElement("iframe");
+				iframe.className = "frame";
+				iframe.setAttribute("sandbox", "allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin");
+				iframe.setAttribute("allow", "fullscreen");
+				framesEl.appendChild(iframe);
+				const tab = { iframe, url: null, title: "New Tab" };
+				tabs.push(tab);
+				renderTabs();
+				switchTab(tabs.length - 1);
+				if (url) go(url);
+				return tab;
+			}
+
+			function go(url) {
+				const t = tabs[active];
+				if (!t || !url) return;
+				t.url = url;
+				let frame = getFrame(t);
+				if (!frame) frame = controller.createFrame(t.iframe);
+				frame.go(url);
+				urlbar.value = url;
+				updateStar();
+			}
+
+			function goUrl() {
+				const u = normalize(urlbar.value);
+				if (u) go(u);
+			}
+
+			function switchTab(i) {
+				if (i < 0 || i >= tabs.length) return;
+				active = i;
+				tabs.forEach((t, j) => { t.iframe.style.display = j === i ? "block" : "none"; });
+				renderTabs();
+				const t = tabs[i];
+				urlbar.value = t.url || "";
+				if (!t.url) urlbar.focus();
+				updateStar();
+				syncActive();
+			}
+
+			function closeTab(i) {
+				if (tabs.length <= 1) return;
+				const [t] = tabs.splice(i, 1);
+				t.iframe.remove();
+				const f = getFrame(t);
+				if (f && controller) {
+					const idx = controller.frames.indexOf(f);
+					if (idx >= 0) controller.frames.splice(idx, 1);
+				}
+				if (active >= tabs.length) active = tabs.length - 1;
+				switchTab(active);
+			}
+
+			function renderTabs() {
+				let holder = document.getElementById("tabholder");
+				if (!holder) {
+					holder = document.createElement("div");
+					holder.id = "tabholder";
+					tabsEl.insertBefore(holder, document.getElementById("newtabwrap"));
+				}
+				holder.innerHTML = "";
+				tabs.forEach((t, i) => {
+					const d = document.createElement("div");
+					d.className = "tab" + (i === active ? " active" : "");
+					const label = document.createElement("span");
+					label.textContent = t.title || "New Tab";
+					label.onclick = () => switchTab(i);
+					const x = document.createElement("span");
+					x.className = "tab-x";
+					x.textContent = "×";
+					x.title = "Close tab";
+					x.onclick = (e) => { e.stopPropagation(); closeTab(i); };
+					d.appendChild(label);
+					d.appendChild(x);
+					holder.appendChild(d);
+				});
+			}
+
+			function syncActive() {
+				const t = tabs[active];
+				if (!t || !controller) return;
+				try {
+					const href = t.iframe.contentWindow?.location?.href;
+					if (href && href.includes(FRAME_PREFIX)) {
+						let rest = href.substring(href.indexOf(FRAME_PREFIX) + FRAME_PREFIX.length);
+						const slash = rest.indexOf("/");
+						if (slash >= 0) rest = rest.substring(slash + 1);
+						const decoded = decodeURIComponent(rest);
+						if (decoded.startsWith("http")) {
+							t.url = decoded;
+							urlbar.value = decoded;
+							updateStar();
+						}
+					}
+					const title = t.iframe.contentDocument?.title;
+					if (title) {
+						t.title = title.slice(0, 60);
+						renderTabs();
+					}
+				} catch (e) { }
+			}
+
+			function navBack() { const f = getFrame(tabs[active]); if (f) f.back(); }
+			function navForward() { const f = getFrame(tabs[active]); if (f) f.forward(); }
+			function navReload() { const f = getFrame(tabs[active]); if (f) f.reload(); }
+
+			function getBookmarks() {
+				try { return JSON.parse(localStorage.getItem(BOOKMARKS_KEY)) || []; }
+				catch (e) { return []; }
+			}
+			function saveBookmarks(list) {
+				localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(list));
+				renderBookmarks();
+				updateStar();
+			}
+			function isBookmarked(url) { return getBookmarks().some((b) => b.url === url); }
+			function updateStar() {
+				const t = tabs[active];
+				starBtn.style.opacity = t?.url && isBookmarked(t.url) ? "1" : "0.5";
+			}
+			function toggleStar() {
+				const t = tabs[active];
+				if (!t?.url) { toast({ title: "No page to bookmark", message: "Navigate somewhere first!" }); return; }
+				const list = getBookmarks();
+				const idx = list.findIndex((b) => b.url === t.url);
+				if (idx >= 0) {
+					list.splice(idx, 1);
+					toast({ title: "Bookmark removed", message: "" });
+				} else {
+					list.push({ title: t.title || t.url, url: t.url });
+					toast({ title: "Bookmarked!", message: t.url });
+				}
+				saveBookmarks(list);
+			}
+			function renderBookmarks() {
+				const list = getBookmarks();
+				if (!list.length) {
+					bookmarksEl.innerHTML = '<span id="emptybookmarks">No bookmarks yet - click the star to save a page.</span>';
+					return;
+				}
+				bookmarksEl.innerHTML = "";
+				list.forEach((b, i) => {
+					const a = document.createElement("button");
+					a.className = "bookmark";
+					a.textContent = b.title || b.url;
+					a.title = b.url;
+					a.onclick = () => go(b.url);
+					const x = document.createElement("span");
+					x.className = "bookmark-x";
+					x.textContent = "×";
+					x.title = "Remove bookmark";
+					x.onclick = (e) => {
+						e.stopPropagation();
+						const l = getBookmarks();
+						l.splice(i, 1);
+						saveBookmarks(l);
+					};
+					a.appendChild(x);
+					bookmarksEl.appendChild(a);
+				});
+			}
+
+			function openSettings() {
+				const cur = localStorage.getItem(WISP_KEY) || "wss://anura.pro/";
+				const v = prompt("Wisp server URL (ws:// or wss://, trailing slash):", cur);
+				if (v && v.trim()) {
+					localStorage.setItem(WISP_KEY, v.trim());
+					location.reload();
+				}
+			}
+
+			urlbar.addEventListener("keydown", (e) => { if (e.key === "Enter") goUrl(); });
+			window.addEventListener("load", () => {
+				renderBookmarks();
+				setInterval(syncActive, 500);
+				init();
+			});
+		</script>
 	</body>
 </html>
