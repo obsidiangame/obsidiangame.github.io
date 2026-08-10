@@ -158,6 +158,73 @@
 				opacity: 0.7;
 				color: var(--textcolor);
 			}
+			#settingsmodal {
+				position: absolute;
+				inset: 0;
+				z-index: 10;
+				background-color: rgba(0, 0, 0, 0.5);
+				display: none;
+				align-items: center;
+				justify-content: center;
+			}
+			#settingsmodal.show {
+				display: flex;
+			}
+			#settingsbox {
+				width: min(420px, 90%);
+				background-color: var(--uibg);
+				border: 1px solid var(--inputborder);
+				border-radius: 12px;
+				padding: 20px;
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+				box-sizing: border-box;
+			}
+			#settingsbox h3 {
+				margin: 0;
+				font-size: 18px;
+				text-align: center;
+			}
+			#settingsbox label {
+				font-size: 13px;
+				opacity: 0.8;
+				text-align: left;
+			}
+			#settingsbox select,
+			#settingsbox input {
+				background-color: var(--inputbg);
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				padding: 9px 12px;
+				font-size: 14px;
+				color: var(--textcolor);
+				text-align: left;
+				width: 100%;
+				box-sizing: border-box;
+			}
+			#settingsbox select option {
+				background-color: var(--inputbg);
+				color: var(--textcolor);
+			}
+			#settingsrow {
+				display: flex;
+				gap: 8px;
+				justify-content: center;
+			}
+			.settingsbtn {
+				flex: 1;
+				background-color: var(--inputbg);
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				padding: 9px 12px;
+				font-size: 14px;
+				color: var(--textcolor);
+				cursor: pointer;
+			}
+			.settingsbtn:hover {
+				border-color: var(--textcolor);
+			}
 		</style>
 	</head>
 	<body>
@@ -203,6 +270,22 @@
 						</div>
 						<p id="loadpct">Loading proxy..</p>
 					</div>
+					<div id="settingsmodal">
+						<div id="settingsbox">
+							<h3>Proxy Settings</h3>
+							<label for="wispsel">Wisp server (if a site is blocked, try another one)</label>
+							<select id="wispsel">
+								<option value="wss://anura.pro/">anura.pro (default)</option>
+								<option value="wss://wisp.mercurywork.shop/">wisp.mercurywork.shop</option>
+								<option value="__custom__">Custom...</option>
+							</select>
+							<input id="wispcustom" placeholder="wss://your-server.example/" autocomplete="off" spellcheck="false" style="display: none;" />
+							<div id="settingsrow">
+								<button class="settingsbtn" id="settingssave">Save</button>
+								<button class="settingsbtn" id="settingscancel">Cancel</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</main>
@@ -234,6 +317,10 @@
 			const loadscreen = document.getElementById("loadscreen");
 			const loadbar = document.getElementById("loadbar");
 			const loadpct = document.getElementById("loadpct");
+			const settingsModal = document.getElementById("settingsmodal");
+			const wispSel = document.getElementById("wispsel");
+			const wispCustom = document.getElementById("wispcustom");
+			const KNOWN_WISPS = ["wss://anura.pro/", "wss://wisp.mercurywork.shop/"];
 
 			function setLoad(status, pct) {
 				if (loadbar) loadbar.style.width = (pct ?? 0) + "%";
@@ -274,7 +361,7 @@
 					}
 					setLoad("Loading transport...", 40);
 					const Transport = LibcurlTransport.LibcurlClient ?? LibcurlTransport.default;
-					const transport = new Transport({ wisp: localStorage.getItem(WISP_KEY) || "wss://anura.pro/" });
+					const transport = new Transport({ wisp: getWisp() });
 					await transport.init();
 					setLoad("Starting controller...", 70);
 					controller = new $scramjetController.Controller({
@@ -387,14 +474,48 @@
 				});
 			}
 
-			function openSettings() {
-				const cur = localStorage.getItem(WISP_KEY) || "wss://anura.pro/";
-				const v = prompt("Wisp server URL (ws:// or wss://, trailing slash):", cur);
-				if (v && v.trim()) {
-					localStorage.setItem(WISP_KEY, v.trim());
-					location.reload();
-				}
+			function getWisp() {
+				return localStorage.getItem(WISP_KEY) || "wss://anura.pro/";
 			}
+
+			function openSettings() {
+				const cur = getWisp();
+				if (KNOWN_WISPS.includes(cur)) {
+					wispSel.value = cur;
+					wispCustom.style.display = "none";
+				} else {
+					wispSel.value = "__custom__";
+					wispCustom.value = cur;
+					wispCustom.style.display = "";
+				}
+				settingsModal.classList.add("show");
+			}
+
+			function closeSettings() {
+				settingsModal.classList.remove("show");
+			}
+
+			function saveSettings() {
+				let wisp = wispSel.value;
+				if (wisp === "__custom__") wisp = wispCustom.value.trim();
+				if (!/^ws:\/\/|^wss:\/\//.test(wisp)) {
+					toast({ title: "Invalid wisp server", message: "Must start with ws:// or wss://" });
+					return;
+				}
+				if (!wisp.endsWith("/")) wisp += "/";
+				localStorage.setItem(WISP_KEY, wisp);
+				toast({ title: "Wisp server saved", message: "Reloading proxy..." });
+				setTimeout(() => location.reload(), 800);
+			}
+
+			wispSel.addEventListener("change", () => {
+				wispCustom.style.display = wispSel.value === "__custom__" ? "" : "none";
+			});
+			settingsModal.addEventListener("click", (e) => {
+				if (e.target === settingsModal) closeSettings();
+			});
+			document.getElementById("settingssave").addEventListener("click", saveSettings);
+			document.getElementById("settingscancel").addEventListener("click", closeSettings);
 
 			urlbar.addEventListener("keydown", (e) => { if (e.key === "Enter") goUrl(); });
 			window.addEventListener("load", () => {
