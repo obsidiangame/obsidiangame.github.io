@@ -308,7 +308,7 @@
 							<h3>Settings</h3>
 							<label for="srvsel">Server (if a site won't load, try another)</label>
 							<select id="srvsel">
-								<option value="wss://wisp-vj2h.onrender.com/">ours (default)</option>
+								<option value="wss://relay-gb3k.onrender.com/">ours (default)</option>
 								<option value="__custom__">Custom...</option>
 							</select>
 							<input id="srvcustom" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
@@ -365,7 +365,7 @@
 			const settingsModal = document.getElementById("settingsmodal");
 			const srvSel = document.getElementById("srvsel");
 			const srvCustom = document.getElementById("srvcustom");
-			const SERVERS = ["wss://wisp-vj2h.onrender.com/"];
+			const SERVERS = ["wss://relay-gb3k.onrender.com/"];
 
 			function setLoad(status, pct) {
 				if (loadbar) loadbar.style.width = (pct ?? 0) + "%";
@@ -577,18 +577,31 @@
 
 			function migrateMarks() {
 				try {
-					if (!localStorage.getItem(MARKS_KEY)) {
-						const old = localStorage.getItem("obsidian.proxy.bookmarks");
-						if (old) {
-							localStorage.setItem(MARKS_KEY, old);
-							localStorage.removeItem("obsidian.proxy.bookmarks");
-						}
+					const oldRaw = localStorage.getItem("obsidian.proxy.bookmarks");
+					if (!oldRaw) return;
+					const old = JSON.parse(oldRaw);
+					if (!Array.isArray(old) || !old.length) {
+						localStorage.removeItem("obsidian.proxy.bookmarks");
+						return;
 					}
+					let cur = [];
+					try { cur = JSON.parse(localStorage.getItem(MARKS_KEY)) || []; }
+					catch (e) { cur = []; }
+					if (!Array.isArray(cur)) cur = [];
+					const seen = new Set(cur.map((b) => b.url));
+					old.forEach((b) => {
+						if (b && b.url && !seen.has(b.url)) {
+							cur.push({ title: b.title || b.url, url: b.url });
+							seen.add(b.url);
+						}
+					});
+					localStorage.setItem(MARKS_KEY, JSON.stringify(cur));
+					localStorage.removeItem("obsidian.proxy.bookmarks");
 				} catch (e) { }
 			}
 
 			function getServer() {
-				return localStorage.getItem(SRV_KEY) || "wss://wisp-vj2h.onrender.com/";
+				return localStorage.getItem(SRV_KEY) || "wss://relay-gb3k.onrender.com/";
 			}
 
 			function openSettings() {
