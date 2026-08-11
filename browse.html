@@ -581,69 +581,6 @@
 				outline: 2px solid var(--textcolor);
 				outline-offset: 2px;
 			}
-			#devbtn {
-				position: fixed;
-				right: 16px;
-				bottom: 16px;
-				z-index: 1200;
-				background-color: var(--inputbg);
-				border: 1px solid var(--inputborder);
-				border-radius: 8px;
-				padding: 8px 14px;
-				font-size: 13px;
-				color: var(--textcolor);
-				cursor: pointer;
-				box-shadow: var(--shadow);
-			}
-			#devpanel {
-				position: fixed;
-				right: 16px;
-				bottom: 56px;
-				z-index: 1200;
-				width: min(420px, 92vw);
-				background-color: var(--uibg);
-				border: 1px solid var(--inputborder);
-				border-radius: 12px;
-				padding: 12px;
-				display: none;
-				flex-direction: column;
-				gap: 8px;
-				box-shadow: var(--shadow);
-			}
-			#devpanel.show {
-				display: flex;
-			}
-			#devpanel textarea {
-				background-color: var(--inputbg);
-				border: 1px solid var(--inputborder);
-				border-radius: 8px;
-				padding: 8px;
-				font-family: monospace;
-				font-size: 12px;
-				color: var(--textcolor);
-				width: 100%;
-				box-sizing: border-box;
-				min-height: 70px;
-				resize: vertical;
-			}
-			#devout {
-				background-color: var(--inputbg);
-				border: 1px solid var(--inputborder);
-				border-radius: 8px;
-				padding: 8px;
-				font-family: monospace;
-				font-size: 12px;
-				color: var(--textcolor);
-				max-height: 180px;
-				overflow: auto;
-				white-space: pre-wrap;
-				word-break: break-word;
-				margin: 0;
-			}
-			#devtoolsbar {
-				display: flex;
-				gap: 8px;
-			}
 			.settingsbtn {
 				flex: 1;
 				background-color: var(--inputbg);
@@ -734,9 +671,6 @@
 							<input id="srvcustom" type="text" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
 							<p id="srvstatus">Checking server...</p>
 							<label class="cbox"><input type="checkbox" id="setAutoswitch" /><span class="cboxmark"></span>Auto-switch server on failure</label>
-							<label class="cbox"><input type="checkbox" id="setAdblock" /><span class="cboxmark"></span>Block ads &amp; trackers</label>
-							<label class="cbox"><input type="checkbox" id="setDevtools" /><span class="cboxmark"></span>Dev tools (run JS on pages)</label>
-							<label class="cbox"><input type="checkbox" id="setFullscreen" /><span class="cboxmark"></span>Launch in fullscreen</label>
 							<div id="settingsrow">
 								<button class="settingsbtn" id="settingssave">Save</button>
 								<button class="settingsbtn" id="settingscancel">Cancel</button>
@@ -912,7 +846,6 @@
 					activeSW = sw;
 					if (sw) {
 						try {
-							sw.postMessage({ $zx$adblock: localStorage.getItem("obsidian.proxy.adblock") !== "false" });
 							sw.addEventListener("statechange", () => { });
 						} catch (e) { }
 					}
@@ -1398,9 +1331,6 @@
 					srvCustom.style.display = "";
 				}
 				document.getElementById("setAutoswitch").checked = autoswitchEnabled();
-				document.getElementById("setAdblock").checked = localStorage.getItem("obsidian.proxy.adblock") !== "false";
-				document.getElementById("setDevtools").checked = localStorage.getItem("obsidian.proxy.devtools") === "true";
-				document.getElementById("setFullscreen").checked = localStorage.getItem("obsidian.proxy.fullscreen") === "true";
 				settingsModal.classList.add("show");
 				updateServerStatus();
 			}
@@ -1429,102 +1359,8 @@
 				if (!srv.endsWith("/")) srv += "/";
 				localStorage.setItem(SRV_KEY, srv);
 				localStorage.setItem("obsidian.proxy.autoswitch", document.getElementById("setAutoswitch").checked ? "true" : "false");
-				localStorage.setItem("obsidian.proxy.adblock", document.getElementById("setAdblock").checked ? "true" : "false");
-				localStorage.setItem("obsidian.proxy.devtools", document.getElementById("setDevtools").checked ? "true" : "false");
-				localStorage.setItem("obsidian.proxy.fullscreen", document.getElementById("setFullscreen").checked ? "true" : "false");
-				try {
-					if (activeSW) activeSW.postMessage({ $zx$adblock: document.getElementById("setAdblock").checked });
-				} catch (e) { }
-				if (document.getElementById("setFullscreen").checked) toggleFullscreen();
 				toast({ title: "Server saved", message: "Reloading..." });
 				setTimeout(() => location.reload(), 800);
-			}
-
-			function toggleFullscreen() {
-				try {
-					const el = getActiveTab()?.element;
-					if (!el) return;
-					if (document.fullscreenElement) {
-						document.exitFullscreen();
-					} else {
-						el.requestFullscreen();
-					}
-				} catch (e) { }
-			}
-
-			let devPanel = null;
-			let devInput = null;
-			let devOut = null;
-
-			function ensureDevUI() {
-				if (devPanel) return;
-				devPanel = document.createElement("div");
-				devPanel.id = "devpanel";
-				devPanel.innerHTML = '<textarea id="devcode" placeholder="Run JavaScript on the current page..."></textarea>' +
-					'<div id="devtoolsbar">' +
-					'<button class="settingsbtn" id="devrun">Run</button>' +
-					'<button class="settingsbtn" id="devsrc">View Source</button>' +
-					'<button class="settingsbtn" id="devclose">Close</button>' +
-					'</div><pre id="devout"></pre>';
-				document.body.appendChild(devPanel);
-				devInput = devPanel.querySelector("#devcode");
-				devOut = devPanel.querySelector("#devout");
-				devPanel.querySelector("#devrun").onclick = runDevCode;
-				devPanel.querySelector("#devsrc").onclick = devViewSource;
-				devPanel.querySelector("#devclose").onclick = toggleDevPanel;
-				devInput.addEventListener("keydown", (e) => {
-					if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) runDevCode();
-				});
-			}
-
-			function getActiveFrameWin() {
-				return getActiveTab()?.element.contentWindow;
-			}
-
-			function toggleDevPanel() {
-				ensureDevUI();
-				devPanel.classList.toggle("show");
-				if (devPanel.classList.contains("show") && devInput) devInput.focus();
-			}
-
-			function runDevCode() {
-				if (!devInput) return;
-				const code = devInput.value;
-				if (!code) return;
-				try {
-					const win = getActiveFrameWin();
-					if (!win) throw new Error("No active tab");
-					const result = win.eval(code);
-					devOut.textContent = typeof result === "string" ? result : JSON.stringify(result, null, 2);
-				} catch (err) {
-					devOut.textContent = String(err);
-				}
-			}
-
-			function devViewSource() {
-				try {
-					const tab = getActiveTab();
-					if (!tab) throw new Error("No active tab");
-					const src = tab.element.contentDocument.documentElement.outerHTML;
-					devOut.textContent = src.length > 8000 ? src.substring(0, 8000) + "\n... (truncated)" : src;
-				} catch (err) {
-					devOut.textContent = String(err);
-				}
-			}
-
-			function updateDevButton() {
-				let devbtn = document.getElementById("devbtn");
-				const on = localStorage.getItem("obsidian.proxy.devtools") === "true";
-				if (on && !devbtn) {
-					devbtn = document.createElement("button");
-					devbtn.id = "devbtn";
-					devbtn.textContent = "</>";
-					devbtn.title = "Dev tools";
-					devbtn.onclick = toggleDevPanel;
-					document.body.appendChild(devbtn);
-				} else if (!on && devbtn) {
-					devbtn.remove();
-				}
 			}
 
 			function updateStartVisibility() {
@@ -1613,8 +1449,6 @@
 				migrateMarks();
 				renderBookmarks();
 				updateStar();
-				updateDevButton();
-				if (localStorage.getItem("obsidian.proxy.fullscreen") === "true") toggleFullscreen();
 				init();
 			});
 		</script>
