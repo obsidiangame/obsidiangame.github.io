@@ -239,20 +239,20 @@ function categoryChanger() {
 	catModal.id = "catmodal";
 	catModal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;";
 	const box = document.createElement("div");
-	box.style.cssText = "background:#1a1a2e;border:1px solid #5a189a;border-radius:12px;padding:20px;max-width:560px;width:92%;max-height:80vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,.5);";
+	box.style.cssText = "background:var(--uibg);border:2px solid var(--inputborder);border-radius:12px;padding:20px;max-width:560px;width:92%;max-height:80vh;overflow:auto;box-shadow:var(--shadow),0 8px 32px rgba(0,0,0,.5);";
 	const title = document.createElement("h3");
 	title.textContent = "Game Categories";
-	title.style.cssText = "margin:0 0 12px;color:#c77dff;";
+	title.style.cssText = "margin:0 0 12px;color:var(--textcolor);";
 	const wrap = document.createElement("div");
 	wrap.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;";
 	const names = ["All Games"].concat(GAME_CATS.map((c) => c.name));
 	names.forEach((n) => {
 		const b = document.createElement("button");
 		b.textContent = n;
-		b.style.cssText = "background:#240046;color:#e0aaff;border:1px solid #5a189a;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px;";
-		if (n === currentCategory) b.style.background = "#7b2cbf";
-		b.onmouseover = () => { if (n !== currentCategory) b.style.background = "#3c096c"; };
-		b.onmouseout = () => { if (n !== currentCategory) b.style.background = "#240046"; };
+		b.style.cssText = "background:var(--inputbg);color:var(--textcolor);border:2px solid var(--inputborder);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px;opacity:.85;transition:opacity .15s;";
+		if (n === currentCategory) b.style.opacity = "1";
+		b.onmouseover = () => { b.style.opacity = "1"; };
+		b.onmouseout = () => { b.style.opacity = n === currentCategory ? "1" : ".85"; };
 		b.onclick = () => {
 			currentCategory = n;
 			catModal.remove();
