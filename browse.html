@@ -240,6 +240,83 @@
 				gap: 8px;
 				justify-content: center;
 			}
+			.setrow {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				font-size: 13px;
+				opacity: 0.9;
+				cursor: pointer;
+			}
+			.setrow input[type="checkbox"] {
+				width: 16px;
+				height: 16px;
+				accent-color: var(--inputborder);
+				cursor: pointer;
+			}
+			#devbtn {
+				position: fixed;
+				right: 16px;
+				bottom: 16px;
+				z-index: 1200;
+				background-color: var(--inputbg);
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				padding: 8px 14px;
+				font-size: 13px;
+				color: var(--textcolor);
+				cursor: pointer;
+				box-shadow: var(--shadow);
+			}
+			#devpanel {
+				position: fixed;
+				right: 16px;
+				bottom: 56px;
+				z-index: 1200;
+				width: min(420px, 92vw);
+				background-color: var(--uibg);
+				border: 1px solid var(--inputborder);
+				border-radius: 12px;
+				padding: 12px;
+				display: none;
+				flex-direction: column;
+				gap: 8px;
+				box-shadow: var(--shadow);
+			}
+			#devpanel.show {
+				display: flex;
+			}
+			#devpanel textarea {
+				background-color: var(--inputbg);
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				padding: 8px;
+				font-family: monospace;
+				font-size: 12px;
+				color: var(--textcolor);
+				width: 100%;
+				box-sizing: border-box;
+				min-height: 70px;
+				resize: vertical;
+			}
+			#devout {
+				background-color: var(--inputbg);
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				padding: 8px;
+				font-family: monospace;
+				font-size: 12px;
+				color: var(--textcolor);
+				max-height: 180px;
+				overflow: auto;
+				white-space: pre-wrap;
+				word-break: break-word;
+				margin: 0;
+			}
+			#devtoolsbar {
+				display: flex;
+				gap: 8px;
+			}
 			.settingsbtn {
 				flex: 1;
 				background-color: var(--inputbg);
@@ -312,6 +389,9 @@
 								<option value="__custom__">Custom...</option>
 							</select>
 							<input id="srvcustom" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
+							<label class="setrow"><input type="checkbox" id="setAdblock" /> Block ads &amp; trackers</label>
+							<label class="setrow"><input type="checkbox" id="setDevtools" /> Dev tools (run JS on pages)</label>
+							<label class="setrow"><input type="checkbox" id="setFullscreen" /> Launch in fullscreen</label>
 							<div id="settingsrow">
 								<button class="settingsbtn" id="settingssave">Save</button>
 								<button class="settingsbtn" id="settingscancel">Cancel</button>
@@ -354,6 +434,7 @@
 			}
 			let controller = null;
 			let frame = null;
+			let activeSW = null;
 
 			const urlbar = document.getElementById("urlbar");
 			const frameEl = document.getElementById("frameEl");
@@ -423,6 +504,7 @@
 						}
 					}
 					sw = navigator.serviceWorker.controller ?? registration.active;
+					activeSW = sw;
 					if (sw) {
 						try {
 							sw.postMessage({ $zx$adblock: localStorage.getItem("obsidian.proxy.adblock") !== "false" });
@@ -653,6 +735,9 @@
 					srvCustom.value = cur;
 					srvCustom.style.display = "";
 				}
+				document.getElementById("setAdblock").checked = localStorage.getItem("obsidian.proxy.adblock") !== "false";
+				document.getElementById("setDevtools").checked = localStorage.getItem("obsidian.proxy.devtools") === "true";
+				document.getElementById("setFullscreen").checked = localStorage.getItem("obsidian.proxy.fullscreen") === "true";
 				settingsModal.classList.add("show");
 			}
 
@@ -670,9 +755,102 @@
 				if (!/^ws:\/\/|^wss:\/\//.test(srv)) srv = "wss://" + srv;
 				if (!srv.endsWith("/")) srv += "/";
 				localStorage.setItem(SRV_KEY, srv);
+				localStorage.setItem("obsidian.proxy.adblock", document.getElementById("setAdblock").checked ? "true" : "false");
+				localStorage.setItem("obsidian.proxy.devtools", document.getElementById("setDevtools").checked ? "true" : "false");
+				localStorage.setItem("obsidian.proxy.fullscreen", document.getElementById("setFullscreen").checked ? "true" : "false");
+				try {
+					if (activeSW) activeSW.postMessage({ $zx$adblock: document.getElementById("setAdblock").checked });
+				} catch (e) { }
+				if (document.getElementById("setFullscreen").checked) toggleFullscreen();
 				toast({ title: "Server saved", message: "Reloading..." });
 				setTimeout(() => location.reload(), 800);
 			}
+
+			function toggleFullscreen() {
+				try {
+					if (document.fullscreenElement) {
+						document.exitFullscreen();
+					} else {
+						frameEl.requestFullscreen();
+					}
+				} catch (e) { }
+			}
+
+			let devPanel = null;
+			let devInput = null;
+			let devOut = null;
+
+			function ensureDevUI() {
+				if (devPanel) return;
+				devPanel = document.createElement("div");
+				devPanel.id = "devpanel";
+				devPanel.innerHTML = '<textarea id="devcode" placeholder="Run JavaScript on the current page..."></textarea>' +
+					'<div id="devtoolsbar">' +
+					'<button class="settingsbtn" id="devrun">Run</button>' +
+					'<button class="settingsbtn" id="devsrc">View Source</button>' +
+					'<button class="settingsbtn" id="devclose">Close</button>' +
+					'</div><pre id="devout"></pre>';
+				document.body.appendChild(devPanel);
+				devInput = devPanel.querySelector("#devcode");
+				devOut = devPanel.querySelector("#devout");
+				devPanel.querySelector("#devrun").onclick = runDevCode;
+				devPanel.querySelector("#devsrc").onclick = devViewSource;
+				devPanel.querySelector("#devclose").onclick = toggleDevPanel;
+				devInput.addEventListener("keydown", (e) => {
+					if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) runDevCode();
+				});
+			}
+
+			function toggleDevPanel() {
+				ensureDevUI();
+				devPanel.classList.toggle("show");
+				if (devPanel.classList.contains("show") && devInput) devInput.focus();
+			}
+
+			function runDevCode() {
+				if (!devInput) return;
+				const code = devInput.value;
+				if (!code) return;
+				try {
+					const result = frameEl.contentWindow.eval(code);
+					devOut.textContent = typeof result === "string" ? result : JSON.stringify(result, null, 2);
+				} catch (err) {
+					devOut.textContent = String(err);
+				}
+			}
+
+			function devViewSource() {
+				try {
+					const src = frameEl.contentDocument.documentElement.outerHTML;
+					devOut.textContent = src.length > 8000 ? src.substring(0, 8000) + "\n... (truncated)" : src;
+				} catch (err) {
+					devOut.textContent = String(err);
+				}
+			}
+
+			function updateDevButton() {
+				let devbtn = document.getElementById("devbtn");
+				const on = localStorage.getItem("obsidian.proxy.devtools") === "true";
+				if (on && !devbtn) {
+					devbtn = document.createElement("button");
+					devbtn.id = "devbtn";
+					devbtn.textContent = "</>";
+					devbtn.title = "Dev tools";
+					devbtn.onclick = toggleDevPanel;
+					document.body.appendChild(devbtn);
+				} else if (!on && devbtn) {
+					devbtn.remove();
+				}
+			}
+
+			document.addEventListener("keydown", (e) => {
+				if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "D" || e.key === "d")) {
+					if (localStorage.getItem("obsidian.proxy.devtools") === "true") {
+						e.preventDefault();
+						toggleDevPanel();
+					}
+				}
+			});
 
 			srvSel.addEventListener("change", () => {
 				srvCustom.style.display = srvSel.value === "__custom__" ? "" : "none";
@@ -688,6 +866,8 @@
 				migrateMarks();
 				renderBookmarks();
 				updateStar();
+				updateDevButton();
+				if (localStorage.getItem("obsidian.proxy.fullscreen") === "true") toggleFullscreen();
 				setInterval(syncActive, 500);
 				init();
 			});
