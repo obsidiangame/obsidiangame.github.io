@@ -402,6 +402,91 @@
 			.shortcut:hover .shortcut-label {
 				opacity: 1;
 			}
+			.shortcut {
+				position: relative;
+			}
+			.shortcut-fav {
+				width: 44px;
+				height: 44px;
+				border-radius: 8px;
+				object-fit: cover;
+			}
+			.shortcut-remove {
+				position: absolute;
+				top: -6px;
+				right: -6px;
+				width: 18px;
+				height: 18px;
+				border-radius: 50%;
+				background-color: var(--inputbg);
+				border: 1px solid var(--inputborder);
+				color: var(--textcolor);
+				font-size: 12px;
+				line-height: 1;
+				padding: 0;
+				margin: 0;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				z-index: 2;
+			}
+			.shortcut:hover .shortcut-remove {
+				display: flex;
+			}
+			#addshortcut .shortcut-icon {
+				border: 2px dashed var(--inputborder);
+				background: transparent;
+				font-size: 26px;
+				opacity: 0.7;
+			}
+			#addshortcut:hover .shortcut-icon {
+				border-color: var(--textcolor);
+				background: var(--inputbg);
+				opacity: 1;
+			}
+			#addlink {
+				position: absolute;
+				inset: 0;
+				z-index: 10;
+				background-color: rgba(0, 0, 0, 0.5);
+				display: none;
+				align-items: center;
+				justify-content: center;
+			}
+			#addlink.show {
+				display: flex;
+			}
+			#addlinkbox {
+				width: min(360px, 90%);
+				background-color: var(--uibg);
+				border: 1px solid var(--inputborder);
+				border-radius: 12px;
+				padding: 20px;
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+				box-sizing: border-box;
+			}
+			#addlinkbox h3 {
+				margin: 0;
+				font-size: 18px;
+				text-align: center;
+			}
+			#addlinkbox input[type="text"] {
+				width: 100%;
+				box-sizing: border-box;
+				margin: 0;
+				padding: 8px;
+			}
+			#addlinkrow {
+				display: flex;
+				gap: 8px;
+			}
+			#addlinkrow .settingsbtn {
+				flex: 1;
+				margin: 0;
+			}
 			@media (max-width: 480px) {
 				.shortcuts {
 					grid-template-columns: repeat(3, 1fr);
@@ -657,6 +742,17 @@
 							<input type="text" id="searchInput" placeholder="Search or enter URL..." autocomplete="off" spellcheck="false" />
 						</div></form>
 						<div class="shortcuts" id="shortcuts"></div>
+					</div>
+					<div id="addlink">
+						<div id="addlinkbox">
+							<h3>Add Quick Link</h3>
+							<input id="addname" type="text" placeholder="Name" autocomplete="off" spellcheck="false" />
+							<input id="addurl" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false" />
+							<div id="addlinkrow">
+								<button class="settingsbtn" id="addlinksave">Add</button>
+								<button class="settingsbtn" id="addlinkcancel">Cancel</button>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div id="settingsmodal">
@@ -1114,6 +1210,7 @@
 				const tab = getActiveTab();
 				if (!url || !tab || !tab.frame) return;
 				tab.loading = true;
+				tab.url = url;
 				tab.frame.go(url);
 				urlbar.value = url;
 				showLoading(10);
@@ -1140,6 +1237,7 @@
 					updateStartVisibility();
 				} else {
 					tab.loading = true;
+					tab.url = target;
 					tab.frame.go(target);
 					updateTabsUI();
 					if (tab.id === activeTabId) showLoading(10);
@@ -1376,6 +1474,43 @@
 				}
 			}
 
+			const CUSTOM_LINKS_KEY = "obsidian.proxy.customlinks";
+			function getCustomLinks() {
+				try { return JSON.parse(localStorage.getItem(CUSTOM_LINKS_KEY)) || []; } catch (e) { return []; }
+			}
+			function openAddLink() {
+				const box = document.getElementById("addlink");
+				if (!box) return;
+				document.getElementById("addname").value = "";
+				document.getElementById("addurl").value = "";
+				box.classList.add("show");
+				setTimeout(() => { const f = document.getElementById("addname"); if (f) f.focus(); }, 0);
+			}
+			function closeAddLink() {
+				const box = document.getElementById("addlink");
+				if (box) box.classList.remove("show");
+			}
+			function saveAddLink() {
+				const name = document.getElementById("addname").value.trim();
+				const u = normalize(document.getElementById("addurl").value.trim());
+				if (!u) {
+					toast({ title: "Invalid link", message: "Enter a valid URL" });
+					return;
+				}
+				let n = name;
+				if (!n) { try { n = new URL(u).hostname; } catch (e) { n = u; } }
+				const list = getCustomLinks();
+				list.push({ n: n, u: u });
+				localStorage.setItem(CUSTOM_LINKS_KEY, JSON.stringify(list));
+				closeAddLink();
+				if (window.__renderShortcuts) window.__renderShortcuts();
+			}
+			function removeCustomLink(idx) {
+				const list = getCustomLinks();
+				list.splice(idx, 1);
+				localStorage.setItem(CUSTOM_LINKS_KEY, JSON.stringify(list));
+				if (window.__renderShortcuts) window.__renderShortcuts();
+			}
 			const SEARCH_URL = "https://www.google.com/search?q=";
 			function initStartPage() {
 				const SHORTCUTS = [
@@ -1387,8 +1522,9 @@
 					{ l: 'Instagram', u: 'https://instagram.com', v: '0 0 24 24', s: '<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zm0 10.162a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>' }
 				];
 				if (!startpageEl) return;
-				const grid = document.getElementById("shortcuts");
-				if (grid) {
+				let renderShortcuts = () => {
+					const grid = document.getElementById("shortcuts");
+					if (!grid) return;
 					grid.innerHTML = "";
 					SHORTCUTS.forEach((sc) => {
 						const el = document.createElement("div");
@@ -1397,6 +1533,61 @@
 						el.onclick = () => go(sc.u);
 						grid.appendChild(el);
 					});
+					getCustomLinks().forEach((c, i) => {
+						const el = document.createElement("div");
+						el.className = "shortcut";
+						const removeBtn = document.createElement("button");
+						removeBtn.className = "shortcut-remove";
+						removeBtn.title = "Remove";
+						removeBtn.textContent = "\u00d7";
+						removeBtn.onclick = (e) => {
+							e.stopPropagation();
+							removeCustomLink(i);
+						};
+						const iconBox = document.createElement("div");
+						iconBox.className = "shortcut-icon";
+						const img = document.createElement("img");
+						img.className = "shortcut-fav";
+						img.alt = "";
+						let domain = "";
+						try { domain = new URL(c.u).hostname; } catch (e) { }
+						if (domain) img.src = "https://www.google.com/s2/favicons?domain=" + domain + "&sz=64";
+						img.onerror = () => img.remove();
+						iconBox.appendChild(img);
+						const label = document.createElement("div");
+						label.className = "shortcut-label";
+						label.textContent = c.n;
+						el.appendChild(removeBtn);
+						el.appendChild(iconBox);
+						el.appendChild(label);
+						el.onclick = () => go(c.u);
+						grid.appendChild(el);
+					});
+					const plus = document.createElement("div");
+					plus.className = "shortcut";
+					plus.id = "addshortcut";
+					const plusIcon = document.createElement("div");
+					plusIcon.className = "shortcut-icon";
+					plusIcon.textContent = "+";
+					const plusLabel = document.createElement("div");
+					plusLabel.className = "shortcut-label";
+					plusLabel.textContent = "Add";
+					plus.appendChild(plusIcon);
+					plus.appendChild(plusLabel);
+					plus.onclick = openAddLink;
+					grid.appendChild(plus);
+				};
+				renderShortcuts();
+				window.__renderShortcuts = renderShortcuts;
+				const addLink = document.getElementById("addlink");
+				const addName = document.getElementById("addname");
+				const addUrl = document.getElementById("addurl");
+				if (addLink && addName && addUrl) {
+					document.getElementById("addlinksave").addEventListener("click", saveAddLink);
+					document.getElementById("addlinkcancel").addEventListener("click", closeAddLink);
+					addLink.addEventListener("click", (e) => { if (e.target === addLink) closeAddLink(); });
+					addName.addEventListener("keydown", (e) => { if (e.key === "Enter") saveAddLink(); });
+					addUrl.addEventListener("keydown", (e) => { if (e.key === "Enter") saveAddLink(); });
 				}
 				const form = document.querySelector("#startpage .search-wrap");
 				const input = document.getElementById("searchInput");
