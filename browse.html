@@ -405,6 +405,7 @@
 						await waitActive(registration, 15000);
 					}
 					setLoad("Loading transport...", 40);
+					await wakeServer(getServer());
 					const Transport = NetBridge.NetClient ?? NetBridge.default;
 					const transport = new Transport({ gateway: getServer() });
 					await transport.init();
@@ -602,6 +603,19 @@
 
 			function getServer() {
 				return localStorage.getItem(SRV_KEY) || "wss://relay-gb3k.onrender.com/";
+			}
+
+			const OUR_SERVER = "wss://relay-gb3k.onrender.com/";
+
+			async function wakeServer(url) {
+				if (url !== OUR_SERVER) return;
+				setLoad("Waking server...", 45);
+				try {
+					await Promise.race([
+						fetch(url.replace(/^ws/, "http"), { mode: "no-cors" }),
+						new Promise((r) => setTimeout(r, 40000))
+					]);
+				} catch (e) { }
 			}
 
 			function openSettings() {
