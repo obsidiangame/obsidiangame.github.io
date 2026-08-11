@@ -746,13 +746,6 @@ label {
 	text-shadow: var(--shadow);
 	white-space: nowrap;
 }
-#obmenu .ob-hint {
-	margin-left: auto;
-	font-size: 11px;
-	font-weight: 300;
-	opacity: 0.45;
-	white-space: nowrap;
-}
 #obmenu .ob-sep {
 	height: 1px;
 	margin: 5px 8px;
