@@ -7,11 +7,15 @@ function searchGames() {
 		$("#games .suggest").hide();
 	}
 	$("#games .game").hide();
-	$("#games .game").each(function () {
-		if ($(this).text().toUpperCase().indexOf(txt.toUpperCase()) != -1 || $(this).attr("id").toUpperCase().indexOf(txt.toUpperCase()) != -1) {
-			$(this).show();
-		}
-	});
+	if (typeof applyCategoryFilter === "function") {
+		applyCategoryFilter();
+	} else {
+		$("#games .game").each(function () {
+			if ($(this).text().toUpperCase().indexOf(txt.toUpperCase()) != -1 || $(this).attr("id").toUpperCase().indexOf(txt.toUpperCase()) != -1) {
+				$(this).show();
+			}
+		});
+	}
 }
 document.addEventListener("DOMContentLoaded", () => {
 	let urlParams = new URLSearchParams(window.location.search);

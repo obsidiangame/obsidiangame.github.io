@@ -75,15 +75,18 @@ document.addEventListener("DOMContentLoaded", function () {
 	if ($("#panic").length > 0) {
 		$("#panic").val(localStorage.getItem("obsidian.panicUrl") || "");
 	}
-	document.getElementById("blank").addEventListener("click", () => {
-		win = window.open();
+	document.getElementById("blank").addEventListener("click", (e) => {
+		e.preventDefault();
+		win = window.open("about:blank", "_blank");
+		if (!win) {
+			location.href = "/browse.html";
+			return;
+		}
 		win.document.body.style.margin = "0";
 		win.document.body.style.height = "100vh";
-		html = `
-        <style>*{margin:0;padding:0;border:none}body,iframe{height:100vh;width:100vw}</style><script>
-        </script><iframe id=obsidian></iframe>`;
-		win.document.querySelector("html").innerHTML = html;
-		win.eval(`let obsidian = document.getElementById("obsidian");obsidian.setAttribute("src", "${location.origin}");`);
+		win.document.body.innerHTML = `
+        <style>*{margin:0;padding:0;border:none}body,iframe{height:100vh;width:100vw}</style><iframe id=obsidian></iframe>`;
+		win.document.getElementById("obsidian").setAttribute("src", location.origin + "/browse.html");
 		location.href = "https://google.com";
 		close();
 	});

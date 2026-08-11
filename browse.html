@@ -385,10 +385,20 @@
 					const t0 = Date.now();
 					(function poll() {
 						if (registration.active) return resolve(registration.active);
+						if (registration.installing) {
+							registration.installing.onstatechange = () => {
+								if (registration.active) resolve(registration.active);
+							};
+							registration.installing.onerror = () => { };
+						}
 						if (Date.now() - t0 > ms) return reject(new Error("Service worker did not activate"));
 						setTimeout(poll, 100);
 					})();
 				});
+			}
+
+			async function registerSW() {
+				return navigator.serviceWorker.register("/browse/sw.js", { scope: "/browse/" });
 			}
 
 			async function init() {
@@ -398,11 +408,26 @@
 				}
 				try {
 					setLoad("Starting engine...", 10);
-					const registration = await navigator.serviceWorker.register("/browse/sw.js", { scope: "/browse/" });
-					const sw = navigator.serviceWorker.controller ?? registration.active;
+					let registration = await registerSW();
+					let sw = navigator.serviceWorker.controller ?? registration.active;
 					if (!sw) {
 						setLoad("Activating service worker...", 25);
-						await waitActive(registration, 15000);
+						try {
+							await Promise.race([waitActive(registration, 15000), navigator.serviceWorker.ready]);
+						} catch (e1) {
+							setLoad("Retrying service worker...", 25);
+							try { await registration.unregister(); } catch (e2) { }
+							await new Promise((r) => setTimeout(r, 1500));
+							registration = await navigator.serviceWorker.register("/browse/sw.js?v=" + Date.now(), { scope: "/browse/" });
+							await waitActive(registration, 45000);
+						}
+					}
+					sw = navigator.serviceWorker.controller ?? registration.active;
+					if (sw) {
+						try {
+							sw.postMessage({ $zx$adblock: localStorage.getItem("obsidian.proxy.adblock") !== "false" });
+							sw.addEventListener("statechange", () => { });
+						} catch (e) { }
 					}
 					setLoad("Loading transport...", 40);
 					await wakeServer(getServer());

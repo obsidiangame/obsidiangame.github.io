@@ -22,6 +22,7 @@ function loadGames(data) {
 	data.sort(dynamicSort("name"));
 	gamelist = data;
 	for (let i = 0; i < data.length; i++) {
+		gameCategoryCache[data[i].directory] = getGameCategory(data[i]);
 		let $element = $("<a>")
 			.attr({
 				class: "game",
@@ -60,22 +61,7 @@ function loadGames(data) {
 		$("#games").append($element);
 	}
 	$("#games #message").remove();
-
-	if ((search = 1)) {
-		var txt = $("#gamesearch").val();
-		if (txt == "") {
-			$("#games .suggest").show();
-		} else {
-			$("#games .suggest").hide();
-		}
-		$("#games .game").hide();
-		$("#games .game").each(function () {
-			if ($(this).text().toUpperCase().indexOf(txt.toUpperCase()) != -1 || $(this).attr("id").toUpperCase().indexOf(txt.toUpperCase()) != -1) {
-				$(this).show();
-			}
-		});
-	}
-
+	searchGames();
 	// starred games
 	let starred;
 	$(document).on("click", "img.star", function (event) {
@@ -192,4 +178,97 @@ function recommendedGames() {
 		viewrecommended = 0;
 		$("#recommend").text("Click to view recommended games!");
 	}
+}
+
+const GAME_CATS = [
+	{ name: "Papa's", kws: ["papas"] },
+	{ name: "Henry Stickmin", kws: ["henry stickmin"] },
+	{ name: "FNAF", kws: ["five nights"] },
+	{ name: "Minecraft", kws: ["minecraft", "eaglercraft", "mine blocks", "creeper craft", "infinitecraft", "kerosene"] },
+	{ name: "Pokemon", kws: ["pokemon"] },
+	{ name: "Sonic", kws: ["sonic"] },
+	{ name: "Mario", kws: ["mario"] },
+	{ name: "Duck Life", kws: ["duck life"] },
+	{ name: "Vex", kws: ["vex"] },
+	{ name: "Zombies", kws: ["zombie", "zombocalypse", "plants vs. zombies"] },
+	{ name: "Horror", kws: ["horror", "baldi", "backrooms", "the black man", "terri-fried", "gloom", "burger and frights"] },
+	{ name: "Racing", kws: ["racing", "race", "drift", "kart", "hill climb", "moto x3m", "bike champ", "madalin", "car driver", "turbo racing", "splash dash", "pyongyang", "crazy taxi", "polytrack", "monster tracks", "drive mad", "truck"] },
+	{ name: "Sports", kws: ["soccer", "basket", "football", "golf", "tennis", "boxing", "retro bowl", "pool", "1 on 1"] },
+	{ name: "Runners", kws: ["subway", "surfers", "temple run", "crossy road", "doodle jump", "flappy", "jetpack", "copter", "run", "tunnel rush", "slope"] },
+	{ name: "Shooting", kws: ["shooter", "gun", "tank", "sniper", "time shooter", "doom", "counter strike", "csgo", "quake", "temple of boom", "getaway", "blood tournament", "gta", "grand theft", "goldeneye", "superhot", "skibidi"] },
+	{ name: "Fighting", kws: ["smash", "gladihoppers", "guilty gear", "thumb fighter", "brawl", "strike force kitty", "duel"] },
+	{ name: "Rhythm", kws: ["friday night", "osu", "a dance of fire", "geometry", "piano"] },
+	{ name: "Idle & Clicker", kws: ["clicker", "idle", "cookie", "achievement unlocked", "doge miner", "paperclips", "capitalist", "pickcrafter", "bitlife", "snow rider"] },
+	{ name: "Strategy", kws: ["bloons", "tower", "age of war", "mindustry", "super auto pets", "chess", "totally accurate", "tabs", "simcity", "the sims", "pandemic", "plague"] },
+	{ name: "Platformers", kws: ["pizza tower", "celeste", "dadish", "red ball", "super meat boy", "obby", "bob the robber", "draw climber", "karlson", "impossible game", "worlds hardest", "this is the only level", "vex"] },
+	{ name: "Simulators", kws: ["simulator", "talking tom", "skateboarding", "nut sim", "townscaper", "webgl fluid", "virtual x86", "windows 98", "learn to fly", "theme hotel", "tycoon"] },
+	{ name: "Puzzle", kws: ["2048", "sudoku", "solitaire", "minesweeper", "connect four", "mahjong", "puzzle", "little alchemy", "cell machine", "factory balls", "wordle", "riddle", "impossible quiz", "there is no game", "shapez", "shape shipper", "sandboxels", "sand game", "snake", "bubble shooter", "cut the rope", "knife hit", "helix jump", "watermelon"] },
+	{ name: ".io & Multiplayer", kws: ["hole.io", "paper.io", "snowball.io", "state.io", "territorial.io", "yohoho.io", "1v1.lol", "justfall.lol", "among us", "fort", "friday night", "multiplayer", "2 player", "two player", "fireboy", "bad ice cream"] },
+	{ name: "Retro & Classic", kws: ["pacman", "tetris", "pong", "frogger", "donkey kong", "pinball", "tron", "simon", "hextris", "sandtrix", "snake", "space cadet", "minesweeper", "solitaire"] },
+	{ name: "Other", kws: [] }
+];
+const gameCategoryCache = {};
+let currentCategory = "All Games";
+let catModal = null;
+
+function getGameCategory(g) {
+	const hay = (g.name + " " + g.directory).toLowerCase();
+	for (const c of GAME_CATS) {
+		if (c.kws.some((k) => hay.includes(k))) return c.name;
+	}
+	return "Other";
+}
+
+function applyCategoryFilter() {
+	$("#games .game").each(function () {
+		const cat = currentCategory;
+		let ok = true;
+		if (cat !== "All Games" && gameCategoryCache[$(this).attr("id")] !== cat) ok = false;
+		const txt = $("#gamesearch").val() || "";
+		if (txt && $(this).text().toUpperCase().indexOf(txt.toUpperCase()) === -1 && $(this).attr("id").toUpperCase().indexOf(txt.toUpperCase()) === -1) ok = false;
+		if (ok) $(this).show();
+	});
+}
+
+function categoryChanger() {
+	if (catModal) {
+		catModal.remove();
+		catModal = null;
+	}
+	catModal = document.createElement("div");
+	catModal.id = "catmodal";
+	catModal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;";
+	const box = document.createElement("div");
+	box.style.cssText = "background:#1a1a2e;border:1px solid #5a189a;border-radius:12px;padding:20px;max-width:560px;width:92%;max-height:80vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,.5);";
+	const title = document.createElement("h3");
+	title.textContent = "Game Categories";
+	title.style.cssText = "margin:0 0 12px;color:#c77dff;";
+	const wrap = document.createElement("div");
+	wrap.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;";
+	const names = ["All Games"].concat(GAME_CATS.map((c) => c.name));
+	names.forEach((n) => {
+		const b = document.createElement("button");
+		b.textContent = n;
+		b.style.cssText = "background:#240046;color:#e0aaff;border:1px solid #5a189a;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px;";
+		if (n === currentCategory) b.style.background = "#7b2cbf";
+		b.onmouseover = () => { if (n !== currentCategory) b.style.background = "#3c096c"; };
+		b.onmouseout = () => { if (n !== currentCategory) b.style.background = "#240046"; };
+		b.onclick = () => {
+			currentCategory = n;
+			catModal.remove();
+			catModal = null;
+			searchGames();
+		};
+		wrap.appendChild(b);
+	});
+	box.appendChild(title);
+	box.appendChild(wrap);
+	catModal.appendChild(box);
+	catModal.addEventListener("click", (e) => {
+		if (e.target === catModal) {
+			catModal.remove();
+			catModal = null;
+		}
+	});
+	document.body.appendChild(catModal);
 }
