@@ -694,3 +694,68 @@ label {
 		opacity: 0;
 	}
 }
+#obmenu {
+	position: fixed;
+	z-index: 999999;
+	min-width: 210px;
+	padding: 6px;
+	background-color: var(--uibg);
+	border: 2px solid var(--inputborder);
+	border-radius: 12px;
+	box-shadow: 0 0 4px var(--uibg), 0 8px 24px rgba(0, 0, 0, 0.45);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	text-align: left;
+	animation: menuIn 0.12s ease-out;
+}
+@keyframes menuIn {
+	0% {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+#obmenu .ob-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	transition-duration: 0.12s;
+	text-align: left;
+}
+#obmenu .ob-item:hover {
+	background-color: var(--inputbg);
+	filter: brightness(90%);
+}
+#obmenu .ob-item svg {
+	width: 18px;
+	height: 18px;
+	fill: currentColor;
+	flex: none;
+}
+#obmenu .ob-label {
+	font-size: 14px;
+	font-weight: 700;
+	text-shadow: var(--shadow);
+	white-space: nowrap;
+}
+#obmenu .ob-hint {
+	margin-left: auto;
+	font-size: 11px;
+	font-weight: 300;
+	opacity: 0.45;
+	white-space: nowrap;
+}
+#obmenu .ob-sep {
+	height: 1px;
+	margin: 5px 8px;
+	background-color: var(--inputborder);
+	opacity: 0.5;
+}
