@@ -343,11 +343,12 @@
 				text-align: left;
 			}
 			#settingsbox select,
-			#settingsbox input {
+			#settingsbox input[type="text"],
+			#settingsbox input:not([type="checkbox"]) {
 				background-color: var(--inputbg);
-				border: 1px solid var(--inputborder);
+				border: 2px solid var(--inputborder);
 				border-radius: 8px;
-				padding: 9px 12px;
+				padding: 8px 12px;
 				font-size: 14px;
 				color: var(--textcolor);
 				text-align: left;
@@ -355,8 +356,36 @@
 				box-sizing: border-box;
 			}
 			#settingsbox select option {
-				background-color: var(--inputbg);
+				background-color: var(--bg);
 				color: var(--textcolor);
+			}
+			#srvsel {
+				appearance: none;
+				-webkit-appearance: none;
+				padding-right: 36px;
+				cursor: pointer;
+			}
+			#srvsel:focus {
+				outline: none;
+				border-color: var(--textcolor);
+			}
+			.select-wrap {
+				position: relative;
+				display: block;
+				width: 100%;
+			}
+			.select-wrap::after {
+				content: "";
+				position: absolute;
+				top: 50%;
+				right: 14px;
+				transform: translateY(-50%);
+				width: 10px;
+				height: 7px;
+				background-color: var(--textcolor);
+				-webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") no-repeat center / contain;
+				mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") no-repeat center / contain;
+				pointer-events: none;
 			}
 			#srvstatus {
 				font-size: 12px;
@@ -370,19 +399,55 @@
 				gap: 8px;
 				justify-content: center;
 			}
-			.setrow {
+			.cbox {
 				display: flex;
 				align-items: center;
 				gap: 8px;
-				font-size: 13px;
-				opacity: 0.9;
 				cursor: pointer;
+				opacity: 1;
 			}
-			.setrow input[type="checkbox"] {
-				width: 16px;
-				height: 16px;
-				accent-color: var(--inputborder);
-				cursor: pointer;
+			.cbox input {
+				position: absolute;
+				opacity: 0;
+				width: 0;
+				height: 0;
+			}
+			.cboxmark {
+				width: 22px;
+				height: 22px;
+				background-color: var(--inputbg);
+				background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0.18));
+				border: 2px solid var(--inputborder);
+				border-radius: 7px;
+				position: relative;
+				flex-shrink: 0;
+				box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+				transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+			}
+			.cbox:hover .cboxmark {
+				border-color: var(--textcolor);
+				box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 5px var(--textcolor);
+			}
+			.cbox input:checked + .cboxmark {
+				background-color: var(--inputborder);
+				background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.1));
+				border-color: var(--textcolor);
+				box-shadow: 0 0 8px var(--inputborder);
+			}
+			.cbox input:checked + .cboxmark::after {
+				content: "";
+				position: absolute;
+				left: 6px;
+				top: 2px;
+				width: 5px;
+				height: 10px;
+				border: solid var(--textcolor);
+				border-width: 0 2.5px 2.5px 0;
+				transform: rotate(45deg);
+			}
+			.cbox input:focus-visible + .cboxmark {
+				outline: 2px solid var(--textcolor);
+				outline-offset: 2px;
 			}
 			#devbtn {
 				position: fixed;
@@ -450,12 +515,13 @@
 			.settingsbtn {
 				flex: 1;
 				background-color: var(--inputbg);
-				border: 1px solid var(--inputborder);
+				border: 2px solid var(--inputborder);
 				border-radius: 8px;
 				padding: 9px 12px;
 				font-size: 14px;
 				color: var(--textcolor);
 				cursor: pointer;
+				transition: border-color 0.2s ease;
 			}
 			.settingsbtn:hover {
 				border-color: var(--textcolor);
@@ -514,18 +580,20 @@
 					<!-- settings v2 -->
 <div id="settingsmodal">
 						<div id="settingsbox">
-							<h3>Settings</h3>
+							<h3>Browser Settings</h3>
 							<label for="srvsel">Server (if a site won't load, try another)</label>
-							<select id="srvsel">
-								<option value="wss://relay-gb3k.onrender.com/">ours (default)</option>
-								<option value="__custom__">Custom...</option>
-							</select>
-							<input id="srvcustom" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
+							<div class="select-wrap">
+								<select id="srvsel">
+									<option value="wss://relay-gb3k.onrender.com/">ours (default)</option>
+									<option value="__custom__">Custom...</option>
+								</select>
+							</div>
+							<input id="srvcustom" type="text" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
 							<p id="srvstatus">Checking server...</p>
-							<label class="setrow"><input type="checkbox" id="setAutoswitch" /> Auto-switch server on failure</label>
-							<label class="setrow"><input type="checkbox" id="setAdblock" /> Block ads &amp; trackers</label>
-							<label class="setrow"><input type="checkbox" id="setDevtools" /> Dev tools (run JS on pages)</label>
-							<label class="setrow"><input type="checkbox" id="setFullscreen" /> Launch in fullscreen</label>
+							<label class="cbox"><input type="checkbox" id="setAutoswitch" /><span class="cboxmark"></span>Auto-switch server on failure</label>
+							<label class="cbox"><input type="checkbox" id="setAdblock" /><span class="cboxmark"></span>Block ads &amp; trackers</label>
+							<label class="cbox"><input type="checkbox" id="setDevtools" /><span class="cboxmark"></span>Dev tools (run JS on pages)</label>
+							<label class="cbox"><input type="checkbox" id="setFullscreen" /><span class="cboxmark"></span>Launch in fullscreen</label>
 							<div id="settingsrow">
 								<button class="settingsbtn" id="settingssave">Save</button>
 								<button class="settingsbtn" id="settingscancel">Cancel</button>
@@ -600,8 +668,8 @@
 				const s = input.trim();
 				if (!s) return null;
 				if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(s)) return s;
-				if (/\s/.test(s)) return "https://www.google.com/search?q=" + encodeURIComponent(s);
-				return "https://" + s;
+				if (!/\s/.test(s) && s.includes(".")) return "https://" + s;
+				return "https://www.google.com/search?q=" + encodeURIComponent(s);
 			}
 
 			function waitActive(registration, ms) {
