@@ -12,13 +12,9 @@
 		copy: '<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>',
 		cut: '<path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6-7.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5zM19 3l-6 6 2 2 7-7V3z"/>',
 		paste: '<path d="M19 2h-4.18C14.4.84 13.3 0 12 0S9.6.84 9.18 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>',
-		selectall: '<path d="M3 5V3h2v2H3zm4 0V3h2v2H7zm4 0V3h2v2h-2zm4 0V3h2v2h-2zm4 0V3h2v2h-2zM3 9V7h2v2H3zm4 0V7h2v2H7zm4 0V7h2v2h-2zm4 0V7h2v2h-2zm4 0V7h2v2h-2zM3 13v-2h2v2H3zm4 0v-2h2v2H7zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2zM3 17v-2h2v2H3zm4 0v-2h2v2H7zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2zM3 21v-2h2v2H3zm4 0v-2h2v2H7zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2z"/>',
-		zoomIn: '<path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14zm2.5-4h-2v2H9v-2H7V9h2V7h1v2h2v1z"/>',
-		zoomOut: '<path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14zM7 9h5v1H7z"/>',
-		print: '<path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>',
 		home: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
 		apps: '<path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>',
-		reset: '<path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/>'
+		games: '<path d="M15 7.5V2H9v5.5l3 3 3-3zM7.5 9H2v6h5.5l3-3-3-3zM9 16.5V22h6v-5.5l-3-3-3 3zM16.5 9l-3 3 3 3H22V9h-5.5z"/>'
 	};
 
 	function icon(path) {
@@ -26,7 +22,6 @@
 	}
 
 	var menu = null;
-	var zoomLevel = 1;
 
 	function closeMenu() {
 		if (menu) {
@@ -75,21 +70,6 @@
 		return !!(sel && sel.toString().trim());
 	}
 
-	function selectAllText() {
-		var sel = window.getSelection();
-		var range = document.createRange();
-		range.selectNodeContents(document.body);
-		sel.removeAllRanges();
-		sel.addRange(range);
-		closeMenu();
-	}
-
-	function setZoom(v) {
-		zoomLevel = Math.min(3, Math.max(0.25, v));
-		zoomLevel = Math.round(zoomLevel * 100) / 100;
-		document.body.style.zoom = zoomLevel;
-	}
-
 	function addItem(menu, item) {
 		var row = document.createElement("div");
 		row.className = "ob-item";
@@ -128,27 +108,21 @@
 		addItem(menu, { icon: ICONS.reload2, label: "Hard Reload", fn: function () { location.reload(true); } });
 		addItem(menu, { icon: ICONS.back, label: "Back", fn: function () { history.back(); } });
 		addItem(menu, { icon: ICONS.forward, label: "Forward", fn: function () { history.forward(); } });
-		addSep(menu);
 
-		addItem(menu, { icon: ICONS.link, label: "Copy Page URL", fn: function () { copyText(location.href); } });
 		if (opts.linkHref) {
+			addSep(menu);
 			addItem(menu, { icon: ICONS.link, label: "Copy Link", fn: function () { copyText(opts.linkHref); } });
 			addItem(menu, { icon: ICONS.open, label: "Open in New Tab", fn: function () { window.open(opts.linkHref, "_blank", "noopener"); } });
 		}
 		if (opts.selection) {
+			addSep(menu);
 			addItem(menu, { icon: ICONS.copy, label: "Copy Text", fn: copySelection });
 		}
-		addItem(menu, { icon: ICONS.selectall, label: "Select All", fn: selectAllText });
-		addSep(menu);
-
-		addItem(menu, { icon: ICONS.zoomIn, label: "Zoom In", fn: function () { setZoom(zoomLevel + 0.25); } });
-		addItem(menu, { icon: ICONS.zoomOut, label: "Zoom Out", fn: function () { setZoom(zoomLevel - 0.25); } });
-		addItem(menu, { icon: ICONS.reset, label: "Reset Zoom", fn: function () { setZoom(1); } });
-		addItem(menu, { icon: ICONS.print, label: "Print Page", fn: function () { window.print(); } });
 		addSep(menu);
 
 		addItem(menu, { icon: ICONS.home, label: "Open Home", fn: function () { location.href = "/"; } });
 		addItem(menu, { icon: ICONS.apps, label: "Open Browse", fn: function () { location.href = "/browse.html"; } });
+		addItem(menu, { icon: ICONS.games, label: "Open Games", fn: function () { location.href = "/projects.html"; } });
 
 		document.body.appendChild(menu);
 		menu.style.left = x + "px";
