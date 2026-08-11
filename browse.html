@@ -17,6 +17,109 @@
 		<link rel="icon" href="/favicon.ico" />
 
 		<style>
+			#tabbar {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				padding: 6px 8px;
+				background-color: var(--uibg);
+				border-bottom: 1px solid var(--inputborder);
+				overflow-x: auto;
+				box-sizing: border-box;
+				scrollbar-width: none;
+			}
+			#tabbar::-webkit-scrollbar {
+				display: none;
+			}
+			.tab {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				min-width: 90px;
+				max-width: 190px;
+				padding: 5px 8px;
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				background-color: var(--inputbg);
+				cursor: pointer;
+				color: var(--textcolor);
+				font-size: 12px;
+				opacity: 0.85;
+				transition: background-color 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+			}
+			.tab:hover {
+				opacity: 1;
+			}
+			.tab.active {
+				opacity: 1;
+				background-color: var(--uibg);
+				border-color: var(--textcolor);
+			}
+			.tab.drag-over {
+				border-color: var(--textcolor);
+				opacity: 1;
+			}
+			.tab-favicon {
+				width: 14px;
+				height: 14px;
+				flex-shrink: 0;
+				border-radius: 3px;
+			}
+			.tab-spinner {
+				width: 12px;
+				height: 12px;
+				flex-shrink: 0;
+				border: 2px solid var(--inputborder);
+				border-top-color: var(--textcolor);
+				border-radius: 50%;
+				animation: tabspin 0.7s linear infinite;
+			}
+			@keyframes tabspin {
+				to { transform: rotate(360deg); }
+			}
+			.tab-title {
+				flex: 1 1 auto;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				min-width: 0;
+			}
+			.tab-close {
+				flex-shrink: 0;
+				font-weight: bold;
+				font-size: 14px;
+				line-height: 1;
+				opacity: 0.6;
+				padding: 0 2px;
+			}
+			.tab-close:hover {
+				opacity: 1;
+			}
+			.new-tab {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 26px;
+				height: 26px;
+				border: 1px solid var(--inputborder);
+				border-radius: 8px;
+				background: none;
+				cursor: pointer;
+				color: var(--textcolor);
+				opacity: 0.75;
+				transition: background-color 0.15s ease, opacity 0.15s ease;
+			}
+			.new-tab:hover:not(:disabled) {
+				opacity: 1;
+				background-color: var(--inputbg);
+			}
+			.new-tab:disabled {
+				opacity: 0.3;
+				cursor: default;
+			}
 			#toolbar {
 				flex: 0 0 auto;
 				display: flex;
@@ -65,6 +168,22 @@
 			}
 			#urlbar:focus {
 				border-color: var(--inputborder);
+			}
+			#loadingbarwrap {
+				flex: 0 0 auto;
+				height: 2px;
+				position: relative;
+				background-color: var(--uibg);
+			}
+			#loadingbar {
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: 100%;
+				width: 0%;
+				background-color: var(--inputborder);
+				opacity: 0;
+				transition: width 0.25s ease, opacity 0.25s ease;
 			}
 			#bookmarks {
 				flex: 0 0 auto;
@@ -144,12 +263,16 @@
 				position: relative;
 				overflow: hidden;
 			}
-			#frameEl {
+			.tabframe {
 				position: absolute;
 				inset: 0;
 				width: 100%;
 				height: 100%;
 				border: 0;
+				display: none;
+			}
+			.tabframe.show {
+				display: block;
 			}
 			#loadscreen {
 				position: absolute;
@@ -234,6 +357,13 @@
 			#settingsbox select option {
 				background-color: var(--inputbg);
 				color: var(--textcolor);
+			}
+			#srvstatus {
+				font-size: 12px;
+				opacity: 0.7;
+				color: var(--textcolor);
+				margin: 0;
+				text-align: left;
 			}
 			#settingsrow {
 				display: flex;
@@ -344,6 +474,7 @@
 		</header>
 		<main>
 			<div id="gamecontainer">
+				<div id="tabbar"></div>
 				<div id="toolbar">
 					<button class="navbtn" id="back" title="Back" onclick="navBack()">
 						<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
@@ -365,6 +496,7 @@
 						<svg viewBox="0 0 24 24" fill="none"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.61 3.61 0 0 1 8.4 12c0-1.98 1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
 					</button>
 				</div>
+				<div id="loadingbarwrap"><div id="loadingbar"></div></div>
 				<div id="bookmarks"><span id="emptybookmarks">No bookmarks yet - click the star to save a page.</span></div>
 				<div id="bmenu" hidden>
 					<button class="bmenu-item" id="bmenuOpen">Open</button>
@@ -372,7 +504,6 @@
 					<button class="bmenu-item" id="bmenuRemove">Remove</button>
 				</div>
 				<div id="frames">
-					<iframe id="frameEl" sandbox="allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin" allow="fullscreen"></iframe>
 					<div id="loadscreen">
 						<img id="loadlogo" src="/favicon.png" />
 						<div id="loadbarwrap">
@@ -390,6 +521,8 @@
 								<option value="__custom__">Custom...</option>
 							</select>
 							<input id="srvcustom" placeholder="your-server.example" autocomplete="off" spellcheck="false" style="display: none;" />
+							<p id="srvstatus">Checking server...</p>
+							<label class="setrow"><input type="checkbox" id="setAutoswitch" /> Auto-switch server on failure</label>
 							<label class="setrow"><input type="checkbox" id="setAdblock" /> Block ads &amp; trackers</label>
 							<label class="setrow"><input type="checkbox" id="setDevtools" /> Dev tools (run JS on pages)</label>
 							<label class="setrow"><input type="checkbox" id="setFullscreen" /> Launch in fullscreen</label>
@@ -420,6 +553,9 @@
 			const SRV_KEY = "obsidian.srv";
 			const MARKS_KEY = "obsidian.marks";
 			const FRAME_PREFIX = "/browse/v/";
+			const MAX_TABS = 12;
+			const OUR_SERVER = "wss://relay-gb3k.onrender.com/";
+			const SERVERS = [OUR_SERVER];
 
 			function rot13(s) {
 				return s.replace(/[a-zA-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + (c.toLowerCase() < "n" ? 13 : -13)));
@@ -434,20 +570,26 @@
 				return decodeURIComponent(escape(atob(b + "=".repeat((4 - (b.length % 4)) % 4))));
 			}
 			let controller = null;
-			let frame = null;
 			let activeSW = null;
 
 			const urlbar = document.getElementById("urlbar");
-			const frameEl = document.getElementById("frameEl");
+			const tabsEl = document.getElementById("tabbar");
+			const framesEl = document.getElementById("frames");
 			const bookmarksEl = document.getElementById("bookmarks");
 			const starBtn = document.getElementById("star");
 			const loadscreen = document.getElementById("loadscreen");
 			const loadbar = document.getElementById("loadbar");
 			const loadpct = document.getElementById("loadpct");
+			const loadingbar = document.getElementById("loadingbar");
 			const settingsModal = document.getElementById("settingsmodal");
 			const srvSel = document.getElementById("srvsel");
 			const srvCustom = document.getElementById("srvcustom");
-			const SERVERS = ["wss://relay-gb3k.onrender.com/"];
+			const srvstatus = document.getElementById("srvstatus");
+
+			let tabs = [];
+			let activeTabId = null;
+			let nextTabId = 1;
+			let _dragSrcTabId = null;
 
 			function setLoad(status, pct) {
 				if (loadbar) loadbar.style.width = (pct ?? 0) + "%";
@@ -483,21 +625,71 @@
 				return navigator.serviceWorker.register("/browse/sw.js", { scope: "/browse/" });
 			}
 
+			function autoswitchEnabled() {
+				return localStorage.getItem("obsidian.proxy.autoswitch") !== "false";
+			}
+
+			function pingServer(url, ms) {
+				return new Promise((resolve) => {
+					const start = Date.now();
+					try {
+						const ws = new WebSocket(url);
+						const t = setTimeout(() => { try { ws.close(); } catch (e) { } resolve({ url, ok: false, ms: null }); }, ms || 2000);
+						ws.onopen = () => { clearTimeout(t); try { ws.close(); } catch (e) { } resolve({ url, ok: true, ms: Date.now() - start }); };
+						ws.onerror = () => { clearTimeout(t); resolve({ url, ok: false, ms: null }); };
+					} catch (e) { resolve({ url, ok: false, ms: null }); }
+				});
+			}
+
+			async function pickBestServer() {
+				const current = getServer();
+				const candidates = Array.from(new Set([current, ...SERVERS]));
+				const results = await Promise.all(candidates.map((u) => pingServer(u)));
+				const cur = results.find((r) => r.url === current);
+				if (cur && cur.ok) return current;
+				const healthy = results.filter((r) => r.ok).sort((a, b) => a.ms - b.ms);
+				return healthy.length ? healthy[0].url : current;
+			}
+
+			function getServer() {
+				return localStorage.getItem(SRV_KEY) || OUR_SERVER;
+			}
+
+			async function wakeServer(url) {
+				if (url !== OUR_SERVER) return;
+				setLoad("Waking server...", 45);
+				try {
+					await Promise.race([
+						fetch(url.replace(/^ws/, "http"), { mode: "no-cors" }),
+						new Promise((r) => setTimeout(r, 40000))
+					]);
+				} catch (e) { }
+			}
+
 			async function init() {
 				if (!("serviceWorker" in navigator)) {
 					setLoad("Your browser doesn't support service workers.", 0);
 					return;
 				}
 				try {
-					setLoad("Starting engine...", 10);
+					if (autoswitchEnabled()) {
+						setLoad("Checking servers...", 15);
+						const best = await pickBestServer();
+						if (best !== getServer()) {
+							localStorage.setItem(SRV_KEY, best);
+							location.reload();
+							return;
+						}
+					}
+					setLoad("Starting engine...", 25);
 					let registration = await registerSW();
 					let sw = navigator.serviceWorker.controller ?? registration.active;
 					if (!sw) {
-						setLoad("Activating service worker...", 25);
+						setLoad("Activating service worker...", 30);
 						try {
 							await Promise.race([waitActive(registration, 15000), navigator.serviceWorker.ready]);
 						} catch (e1) {
-							setLoad("Retrying service worker...", 25);
+							setLoad("Retrying service worker...", 30);
 							try { await registration.unregister(); } catch (e2) { }
 							await new Promise((r) => setTimeout(r, 1500));
 							registration = await navigator.serviceWorker.register("/browse/sw.js?v=" + Date.now(), { scope: "/browse/" });
@@ -529,18 +721,253 @@
 					await controller.wait();
 					setLoad("Done!", 100);
 					loadscreen.style.opacity = "0";
-					setTimeout(() => loadscreen.remove(), 500);
-					frame = controller.createFrame(frameEl);
+					setTimeout(() => {
+						loadscreen.remove();
+						startBrowser();
+					}, 500);
 				} catch (err) {
 					console.error("Engine init failed:", err);
 					setLoad("Failed to load: " + (err?.message || err), 0);
 				}
 			}
 
+			const getActiveTab = () => tabs.find((t) => t.id === activeTabId);
+
+			function startBrowser() {
+				buildNTBlob();
+				createTab(true);
+				checkHashParameters();
+				setInterval(pollActiveTab, 400);
+			}
+
+			function canAddTab() {
+				return tabs.length < MAX_TABS;
+			}
+
+			function createTab(makeActive = true) {
+				if (!canAddTab()) return;
+				const el = document.createElement("iframe");
+				el.className = "tabframe";
+				el.setAttribute("sandbox", "allow-downloads allow-forms allow-modals allow-pointer-lock allow-scripts allow-same-origin");
+				el.setAttribute("allow", "fullscreen");
+				el.setAttribute("referrerpolicy", "no-referrer");
+				const frame = controller.createFrame(el);
+				const tab = {
+					id: nextTabId++,
+					title: "New Tab",
+					url: "",
+					favicon: null,
+					loading: false,
+					element: el,
+					frame,
+					historyStack: ['newtab'],
+					historyIndex: 0,
+					_navigating: false
+				};
+				el.src = window.__ntBlobURL;
+				framesEl.appendChild(el);
+				el.addEventListener("load", () => onFrameLoad(tab));
+				tabs.push(tab);
+				if (makeActive) switchTab(tab.id);
+				return tab;
+			}
+
+			function switchTab(tabId) {
+				if (!tabs.some((t) => t.id === tabId)) return;
+				activeTabId = tabId;
+				tabs.forEach((t) => t.element.classList.toggle("show", t.id === tabId));
+				const tab = getActiveTab();
+				if (tab) {
+					if (tab.loading) showLoading(10); else hideLoading();
+				}
+				updateTabsUI();
+				updateAddressBar();
+				updateStar();
+				updateDocumentTitle();
+			}
+
+			function closeTab(tabId) {
+				const idx = tabs.findIndex((t) => t.id === tabId);
+				if (idx === -1) return;
+				const tab = tabs[idx];
+				try { tab.element.src = "about:blank"; } catch (e) { }
+				tab.element.remove();
+				tabs.splice(idx, 1);
+				if (activeTabId === tabId) {
+					if (tabs.length > 0) switchTab(tabs[Math.max(0, idx - 1)].id);
+					else createTab(true);
+				} else {
+					updateTabsUI();
+				}
+			}
+
+			function updateTabsUI() {
+				if (!tabsEl) return;
+				tabsEl.innerHTML = "";
+				tabs.forEach((tab) => {
+					const el = document.createElement("div");
+					el.className = "tab " + (tab.id === activeTabId ? "active" : "");
+					el.draggable = true;
+					el.dataset.tabId = tab.id;
+
+					const iconHtml = tab.loading
+						? '<div class="tab-spinner"></div>'
+						: tab.favicon
+							? '<img src="' + tab.favicon + '" class="tab-favicon" onerror="this.style.display=\'none\'">'
+							: '';
+
+					el.innerHTML = iconHtml + '<span class="tab-title"></span><span class="tab-close">&times;</span>';
+					el.querySelector(".tab-title").textContent = tab.title;
+					el.onclick = () => switchTab(tab.id);
+					el.querySelector(".tab-close").onclick = (e) => { e.stopPropagation(); closeTab(tab.id); };
+
+					el.addEventListener("dragstart", (e) => {
+						_dragSrcTabId = tab.id;
+						e.dataTransfer.effectAllowed = "move";
+						setTimeout(() => el.style.opacity = "0.4", 0);
+					});
+					el.addEventListener("dragend", () => {
+						el.style.opacity = "";
+						tabsEl.querySelectorAll(".tab").forEach((t) => t.classList.remove("drag-over"));
+					});
+					el.addEventListener("dragover", (e) => {
+						e.preventDefault();
+						e.dataTransfer.dropEffect = "move";
+						if (tab.id !== _dragSrcTabId) el.classList.add("drag-over");
+					});
+					el.addEventListener("dragleave", () => el.classList.remove("drag-over"));
+					el.addEventListener("drop", (e) => {
+						e.preventDefault();
+						el.classList.remove("drag-over");
+						if (_dragSrcTabId === null || _dragSrcTabId === tab.id) return;
+						const fromIdx = tabs.findIndex((t) => t.id === _dragSrcTabId);
+						const toIdx = tabs.findIndex((t) => t.id === tab.id);
+						if (fromIdx === -1 || toIdx === -1) return;
+						const [moved] = tabs.splice(fromIdx, 1);
+						tabs.splice(toIdx, 0, moved);
+						_dragSrcTabId = null;
+						updateTabsUI();
+					});
+
+					tabsEl.appendChild(el);
+				});
+
+				const newBtn = document.createElement("button");
+				newBtn.className = "new-tab";
+				newBtn.id = "new-tab-btn";
+				newBtn.innerHTML = "<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>";
+				newBtn.onclick = () => createTab(true);
+				newBtn.disabled = !canAddTab();
+				tabsEl.appendChild(newBtn);
+			}
+
+			function pushHistory(tab, url) {
+				tab.historyStack = tab.historyStack.slice(0, tab.historyIndex + 1);
+				tab.historyStack.push(url);
+				tab.historyIndex = tab.historyStack.length - 1;
+			}
+
+			function decodeFrameHref(href) {
+				if (!href || !href.includes(FRAME_PREFIX)) return null;
+				let rest = href.substring(href.indexOf(FRAME_PREFIX) + FRAME_PREFIX.length);
+				const slash = rest.lastIndexOf("/");
+				if (slash >= 0) rest = rest.substring(slash + 1);
+				try {
+					const d = codecDecode(rest);
+					if (d.startsWith("http")) return d;
+				} catch (e) { }
+				return null;
+			}
+
+			function pollActiveTab() {
+				const tab = getActiveTab();
+				if (!tab || !tab.element) return;
+				try {
+					const href = tab.element.contentWindow?.location?.href;
+					const decoded = decodeFrameHref(href);
+					if (decoded) {
+						if (decoded !== tab.url) {
+							if (!tab._navigating) pushHistory(tab, decoded);
+							tab.url = decoded;
+							tab.loading = false;
+							try {
+								const t = tab.element.contentDocument?.title;
+								if (t) tab.title = t;
+							} catch (e) { }
+							try {
+								const u = new URL(decoded);
+								tab.title = u.hostname;
+								tab.favicon = "https://www.google.com/s2/favicons?domain=" + u.hostname + "&sz=32";
+							} catch (e) { }
+							updateTabsUI();
+							updateAddressBar();
+							updateStar();
+							updateDocumentTitle();
+						}
+					} else if (tab.url !== "" && href === window.__ntBlobURL) {
+						tab.url = "";
+						tab.title = "New Tab";
+						tab.favicon = null;
+						tab.loading = false;
+						updateTabsUI();
+						updateAddressBar();
+						updateStar();
+						updateDocumentTitle();
+					}
+				} catch (e) { }
+			}
+
+			function onFrameLoad(tab) {
+				tab.loading = false;
+				if (tab.id === activeTabId) hideLoading();
+				try {
+					const href = tab.element.contentWindow?.location?.href;
+					if (href === window.__ntBlobURL || href.includes("NT.html")) {
+						tab.title = "New Tab";
+						tab.url = "";
+						tab.favicon = null;
+					}
+				} catch (e) { }
+				try {
+					const cw = tab.element.contentWindow;
+					if (cw && cw.open !== cw.__glPatched) {
+						const _origOpen = cw.open.bind(cw);
+						cw.open = function (url, target, features) {
+							if (url && typeof url === "string" && url !== "about:blank" && url !== "") {
+								window.postMessage({ type: 'gl_open_tab', url }, '*');
+								return null;
+							}
+							return _origOpen(url, target, features);
+						};
+						cw.open.__glPatched = true;
+					}
+				} catch (e) { }
+				updateTabsUI();
+				updateAddressBar();
+				updateStar();
+				updateDocumentTitle();
+			}
+
+			function showLoading(pct) {
+				if (!loadingbar) return;
+				loadingbar.style.width = (pct ?? 10) + "%";
+				loadingbar.style.opacity = "1";
+			}
+
+			function hideLoading() {
+				if (!loadingbar) return;
+				loadingbar.style.opacity = "0";
+				setTimeout(() => { loadingbar.style.width = "0%"; }, 250);
+			}
+
 			function go(url) {
-				if (!url || !frame) return;
-				frame.go(url);
+				const tab = getActiveTab();
+				if (!url || !tab || !tab.frame) return;
+				tab.loading = true;
+				tab.frame.go(url);
 				urlbar.value = url;
+				showLoading(10);
+				updateTabsUI();
 				updateStar();
 			}
 
@@ -549,28 +976,62 @@
 				if (u) go(u);
 			}
 
-			function syncActive() {
-				if (!frame) return;
-				try {
-					const href = frameEl.contentWindow?.location?.href;
-					if (href && href.includes(FRAME_PREFIX)) {
-						let rest = href.substring(href.indexOf(FRAME_PREFIX) + FRAME_PREFIX.length);
-						const slash = rest.lastIndexOf("/");
-						if (slash >= 0) rest = rest.substring(slash + 1);
-						const decoded = codecDecode(rest);
-						if (decoded.startsWith("http")) {
-							urlbar.value = decoded;
-							updateStar();
-						}
-					}
-					const title = frameEl.contentDocument?.title;
-					if (title) document.title = title + " | Obsidian";
-				} catch (e) { }
+			function navigateToHistory(tab, target) {
+				if (target === 'newtab') {
+					tab.element.src = window.__ntBlobURL;
+					tab.title = "New Tab";
+					tab.url = "";
+					tab.favicon = null;
+					tab.loading = false;
+					updateTabsUI();
+					updateAddressBar();
+					updateStar();
+					updateDocumentTitle();
+				} else {
+					tab.loading = true;
+					tab.frame.go(target);
+					updateTabsUI();
+					if (tab.id === activeTabId) showLoading(10);
+				}
 			}
 
-			function navBack() { if (frame) frame.back(); }
-			function navForward() { if (frame) frame.forward(); }
-			function navReload() { if (frame) frame.reload(); }
+			function navBack() {
+				const tab = getActiveTab();
+				if (!tab || tab.historyIndex <= 0) return;
+				tab._navigating = true;
+				tab.historyIndex--;
+				navigateToHistory(tab, tab.historyStack[tab.historyIndex]);
+				setTimeout(() => { tab._navigating = false; }, 500);
+			}
+
+			function navForward() {
+				const tab = getActiveTab();
+				if (!tab || tab.historyIndex >= tab.historyStack.length - 1) return;
+				tab._navigating = true;
+				tab.historyIndex++;
+				navigateToHistory(tab, tab.historyStack[tab.historyIndex]);
+				setTimeout(() => { tab._navigating = false; }, 500);
+			}
+
+			function navReload() {
+				const tab = getActiveTab();
+				if (!tab || !tab.frame) return;
+				tab.loading = true;
+				tab.frame.reload();
+				updateTabsUI();
+				showLoading(10);
+			}
+
+			function updateAddressBar() {
+				const tab = getActiveTab();
+				urlbar.value = tab && tab.url ? tab.url : "";
+			}
+
+			function updateDocumentTitle() {
+				const tab = getActiveTab();
+				const t = tab && tab.title && tab.title !== "New Tab" ? tab.title + " | " : "";
+				document.title = t + "Obsidian";
+			}
 
 			function getBookmarks() {
 				try { return JSON.parse(localStorage.getItem(MARKS_KEY)) || []; }
@@ -601,7 +1062,7 @@
 					list.splice(idx, 1);
 					toast({ title: "Bookmark removed", message: "" });
 				} else {
-					list.push({ title: document.title.replace(" | Obsidian", "") || current, url: current });
+					list.push({ title: document.title.replace(/ \| Obsidian$/, "") || current, url: current });
 					toast({ title: "Bookmarked!", message: current });
 				}
 				saveBookmarks(list);
@@ -709,23 +1170,6 @@
 				} catch (e) { }
 			}
 
-			function getServer() {
-				return localStorage.getItem(SRV_KEY) || "wss://relay-gb3k.onrender.com/";
-			}
-
-			const OUR_SERVER = "wss://relay-gb3k.onrender.com/";
-
-			async function wakeServer(url) {
-				if (url !== OUR_SERVER) return;
-				setLoad("Waking server...", 45);
-				try {
-					await Promise.race([
-						fetch(url.replace(/^ws/, "http"), { mode: "no-cors" }),
-						new Promise((r) => setTimeout(r, 40000))
-					]);
-				} catch (e) { }
-			}
-
 			function openSettings() {
 				const cur = getServer();
 				if (SERVERS.includes(cur)) {
@@ -736,10 +1180,21 @@
 					srvCustom.value = cur;
 					srvCustom.style.display = "";
 				}
+				document.getElementById("setAutoswitch").checked = autoswitchEnabled();
 				document.getElementById("setAdblock").checked = localStorage.getItem("obsidian.proxy.adblock") !== "false";
 				document.getElementById("setDevtools").checked = localStorage.getItem("obsidian.proxy.devtools") === "true";
 				document.getElementById("setFullscreen").checked = localStorage.getItem("obsidian.proxy.fullscreen") === "true";
 				settingsModal.classList.add("show");
+				updateServerStatus();
+			}
+
+			async function updateServerStatus() {
+				srvstatus.textContent = "Checking server...";
+				const cur = getServer();
+				const r = await pingServer(cur, 3000);
+				srvstatus.textContent = r.ok
+					? "Current server: " + cur + " (" + r.ms + "ms)"
+					: "Current server: " + cur + " (no response)";
 			}
 
 			function closeSettings() {
@@ -756,6 +1211,7 @@
 				if (!/^ws:\/\/|^wss:\/\//.test(srv)) srv = "wss://" + srv;
 				if (!srv.endsWith("/")) srv += "/";
 				localStorage.setItem(SRV_KEY, srv);
+				localStorage.setItem("obsidian.proxy.autoswitch", document.getElementById("setAutoswitch").checked ? "true" : "false");
 				localStorage.setItem("obsidian.proxy.adblock", document.getElementById("setAdblock").checked ? "true" : "false");
 				localStorage.setItem("obsidian.proxy.devtools", document.getElementById("setDevtools").checked ? "true" : "false");
 				localStorage.setItem("obsidian.proxy.fullscreen", document.getElementById("setFullscreen").checked ? "true" : "false");
@@ -769,10 +1225,12 @@
 
 			function toggleFullscreen() {
 				try {
+					const el = getActiveTab()?.element;
+					if (!el) return;
 					if (document.fullscreenElement) {
 						document.exitFullscreen();
 					} else {
-						frameEl.requestFullscreen();
+						el.requestFullscreen();
 					}
 				} catch (e) { }
 			}
@@ -802,6 +1260,10 @@
 				});
 			}
 
+			function getActiveFrameWin() {
+				return getActiveTab()?.element.contentWindow;
+			}
+
 			function toggleDevPanel() {
 				ensureDevUI();
 				devPanel.classList.toggle("show");
@@ -813,7 +1275,9 @@
 				const code = devInput.value;
 				if (!code) return;
 				try {
-					const result = frameEl.contentWindow.eval(code);
+					const win = getActiveFrameWin();
+					if (!win) throw new Error("No active tab");
+					const result = win.eval(code);
 					devOut.textContent = typeof result === "string" ? result : JSON.stringify(result, null, 2);
 				} catch (err) {
 					devOut.textContent = String(err);
@@ -822,7 +1286,9 @@
 
 			function devViewSource() {
 				try {
-					const src = frameEl.contentDocument.documentElement.outerHTML;
+					const tab = getActiveTab();
+					if (!tab) throw new Error("No active tab");
+					const src = tab.element.contentDocument.documentElement.outerHTML;
 					devOut.textContent = src.length > 8000 ? src.substring(0, 8000) + "\n... (truncated)" : src;
 				} catch (err) {
 					devOut.textContent = String(err);
@@ -844,12 +1310,62 @@
 				}
 			}
 
-			document.addEventListener("keydown", (e) => {
-				if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "D" || e.key === "d")) {
-					if (localStorage.getItem("obsidian.proxy.devtools") === "true") {
-						e.preventDefault();
-						toggleDevPanel();
+			function buildNTBlob() {
+				const cs = getComputedStyle(document.documentElement);
+				const v = (n) => cs.getPropertyValue(n).trim();
+				const themeVars = {
+					"--bg": v("--bg"),
+					"--uibg": v("--uibg"),
+					"--inputbg": v("--inputbg"),
+					"--inputborder": v("--inputborder"),
+					"--textcolor": v("--textcolor")
+				};
+				const themeScript = "<script>" + "(function(){var r=document.documentElement;" +
+					Object.keys(themeVars).map((k) => "r.style.setProperty('" + k + "','" + themeVars[k] + "')").join(";") +
+					"})();" + "<\\/script>";
+				const html = "<!DOCTYPE html><html><head><meta charset='utf-8'>" + themeScript + "<style>" +
+					"html,body{margin:0;height:100%;background:var(--bg);color:var(--textcolor);" +
+					"font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}" +
+					"body{display:flex;align-items:center;justify-content:center;}" +
+					".wrap{width:min(560px,90%);text-align:center;}" +
+					".logo{font-size:26px;font-weight:700;letter-spacing:6px;text-transform:uppercase;margin-bottom:28px;opacity:.9;}" +
+					"input{width:100%;box-sizing:border-box;padding:12px 16px;border:1px solid var(--inputborder);" +
+					"border-radius:10px;background:var(--inputbg);color:var(--textcolor);font-size:15px;outline:none;}" +
+					"input:focus{border-color:var(--textcolor);}" +
+					".hint{margin-top:14px;font-size:12px;opacity:.45;}" +
+					"</style></head><body><div class='wrap'>" +
+					"<div class='logo'>Obsidian</div>" +
+					"<input id='q' placeholder='Search or enter address...' autocomplete='off' spellcheck='false'>" +
+					"<div class='hint'>Press Enter to browse</div>" +
+					"</div><script>" +
+					"var q=document.getElementById('q');q.focus();" +
+					"q.addEventListener('keydown',function(e){if(e.key==='Enter'){" +
+					"var v=q.value.trim();if(v)parent.postMessage({type:'navigate',url:v},'*');}});" +
+					"<\\/script></body></html>";
+				window.__ntBlobURL = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+			}
+
+			function checkHashParameters() {
+				if (window.location.hash) {
+					const hash = decodeURIComponent(window.location.hash.substring(1));
+					if (hash) {
+						const u = normalize(hash);
+						if (u) go(u);
+						history.replaceState(null, null, location.pathname);
 					}
+				}
+			}
+
+			window.addEventListener("message", (e) => {
+				const d = e.data;
+				if (!d) return;
+				if (d.type === "navigate") {
+					const u = normalize(d.url);
+					if (u) go(u);
+				} else if (d.type === "gl_open_tab" && d.url) {
+					createTab(true);
+					const u = normalize(d.url);
+					if (u) go(u);
 				}
 			});
 
@@ -869,7 +1385,6 @@
 				updateStar();
 				updateDevButton();
 				if (localStorage.getItem("obsidian.proxy.fullscreen") === "true") toggleFullscreen();
-				setInterval(syncActive, 500);
 				init();
 			});
 		</script>
