@@ -142,7 +142,7 @@
 			return;
 		}
 		var t = e.target;
-		if (t && t.closest && t.closest("#obmenu")) return;
+		if (t && t.closest && t.closest("#obmenu, #bmenu")) return;
 		e.preventDefault();
 		closeMenu();
 		var opts = { linkHref: null, selection: hasSelection(), editable: false };

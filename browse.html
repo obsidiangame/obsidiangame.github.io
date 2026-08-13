@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="sl-theme-dark" lang="en">
 	<head>
 		<!-- initialize externals -->
-		<script src=" https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js "></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+		<script src=" /js/lib/js.cookie.min.js "></script>
+		<script src="/js/lib/jquery.min.js"></script>
 
 		<!-- initialize my stuff -->
 		<script src="/js/all.min.js?v=2"></script>
@@ -761,7 +761,7 @@
 							<label for="srvsel">Server (if a site won't load, try another)</label>
 							<div class="select-wrap">
 								<select id="srvsel">
-									<option value="wss://relay-gb3k.onrender.com/">ours (default)</option>
+									<option value="https://save-layer-passage-oakland.trycloudflare.com/">ours (default)</option>
 									<option value="__custom__">Custom...</option>
 								</select>
 							</div>
@@ -796,7 +796,7 @@
 			const MARKS_KEY = "obsidian.marks";
 			const FRAME_PREFIX = "/browse/v/";
 			const MAX_TABS = 12;
-			const OUR_SERVER = "wss://relay-gb3k.onrender.com/";
+			const OUR_SERVER = "https://save-layer-passage-oakland.trycloudflare.com/";
 			const SERVERS = [OUR_SERVER];
 
 			function rot13(s) {
@@ -1360,6 +1360,7 @@
 				bmenu.style.left = Math.min(e.clientX, window.innerWidth - bmenu.offsetWidth - 4) + "px";
 				bmenu.style.top = Math.min(e.clientY, window.innerHeight - bmenu.offsetHeight - 4) + "px";
 				e.preventDefault();
+				e.stopPropagation();
 			}
 			function closeBmenu() {
 				bmenu.hidden = true;

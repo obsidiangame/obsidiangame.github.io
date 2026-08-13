@@ -6,5 +6,20 @@
   },
   "dependencies": {
     "express": "^4.17.1"
-  }
+  },
+  "description": "The better unblocked games website.",
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obsidiangame/obsidiangame.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/obsidiangame/obsidiangame.github.io/issues"
+  },
+  "homepage": "https://github.com/obsidiangame/obsidiangame.github.io#readme"
 }
