@@ -875,6 +875,7 @@
 			function normSrv(u) {
 				u = (u || "").trim();
 				if (!u) return u;
+				u = u.replace(/^wss?:\/\/https?:\/\//i, "wss://");
 				if (/^wss:\/\//.test(u) || /^ws:\/\//.test(u)) return u;
 				if (/^https:\/\//.test(u)) return "wss://" + u.slice(8);
 				if (/^http:\/\//.test(u)) return "ws://" + u.slice(7);
