@@ -761,7 +761,7 @@
 							<label for="srvsel">Server (if a site won't load, try another)</label>
 							<div class="select-wrap">
 								<select id="srvsel">
-									<option value="https://ide-warehouse-specials-status.trycloudflare.com/">ours (default)</option>
+									<option value="https://forty-browse-fruits-lying.trycloudflare.com/">ours (default)</option>
 									<option value="__custom__">Custom...</option>
 								</select>
 							</div>
@@ -796,7 +796,7 @@
 			const MARKS_KEY = "obsidian.marks";
 			const FRAME_PREFIX = "/browse/v/";
 			const MAX_TABS = 12;
-			const OUR_SERVER = "https://ide-warehouse-specials-status.trycloudflare.com/";
+			const OUR_SERVER = "https://forty-browse-fruits-lying.trycloudflare.com/";
 			const SERVERS = [OUR_SERVER];
 
 			function rot13(s) {
@@ -872,11 +872,20 @@
 				return localStorage.getItem("obsidian.proxy.autoswitch") !== "false";
 			}
 
+			function normSrv(u) {
+				u = (u || "").trim();
+				if (!u) return u;
+				if (/^wss:\/\//.test(u) || /^ws:\/\//.test(u)) return u;
+				if (/^https:\/\//.test(u)) return "wss://" + u.slice(8);
+				if (/^http:\/\//.test(u)) return "ws://" + u.slice(7);
+				return "wss://" + u;
+			}
+
 			function pingServer(url, ms) {
 				return new Promise((resolve) => {
 					const start = Date.now();
 					try {
-						const ws = new WebSocket(url);
+						const ws = new WebSocket(normSrv(url));
 						const t = setTimeout(() => { try { ws.close(); } catch (e) { } resolve({ url, ok: false, ms: null }); }, ms || 2000);
 						ws.onopen = () => { clearTimeout(t); try { ws.close(); } catch (e) { } resolve({ url, ok: true, ms: Date.now() - start }); };
 						ws.onerror = () => { clearTimeout(t); resolve({ url, ok: false, ms: null }); };
@@ -895,7 +904,7 @@
 			}
 
 			function getServer() {
-				return localStorage.getItem(SRV_KEY) || OUR_SERVER;
+				return normSrv(localStorage.getItem(SRV_KEY) || OUR_SERVER);
 			}
 
 			async function wakeServer(url) {
@@ -1455,7 +1464,7 @@
 					toast({ title: "Invalid server", message: "Check the server address" });
 					return;
 				}
-				if (!/^ws:\/\/|^wss:\/\//.test(srv)) srv = "wss://" + srv;
+				srv = normSrv(srv);
 				if (!srv.endsWith("/")) srv += "/";
 				localStorage.setItem(SRV_KEY, srv);
 				localStorage.setItem("obsidian.proxy.autoswitch", document.getElementById("setAutoswitch").checked ? "true" : "false");
