@@ -104,7 +104,7 @@ document.addEventListener(
 		plausible.setAttribute("event-domain", location.host)
 		plausible.setAttribute("defer", "");
 		plausible.setAttribute("src", "/js/analytics.js");
-		plausible.setAttribute("data-domain", "selenite.cc");
+		plausible.setAttribute("data-domain", "obsidiangame.github.io");
 		document.head.appendChild(plausible);
 	},
 	false

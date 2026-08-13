@@ -1,7 +1,7 @@
 var s = document.createElement("script");
 function getMainSave() {
   alert(
-    "Thank you for using the Obsidian Backup Utility! You can transfer your data to https://selenite.cc or use the Obsidian Uploader Utility!"
+    "Thank you for using the Obsidian Backup Utility! You can transfer your data to https://obsidiangame.github.io or use the Obsidian Uploader Utility!"
   );
   var e = {},
     a = Object.entries(localStorage);

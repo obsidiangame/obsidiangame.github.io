@@ -797,7 +797,7 @@
 			const FRAME_PREFIX = "/browse/v/";
 			const MAX_TABS = 12;
 			const OUR_SERVER = "https://forty-browse-fruits-lying.trycloudflare.com/";
-			const SERVERS = [OUR_SERVER];
+			const SERVERS = [OUR_SERVER, "wss://relay-gb3k.onrender.com/"];
 
 			function rot13(s) {
 				return s.replace(/[a-zA-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + (c.toLowerCase() < "n" ? 13 : -13)));

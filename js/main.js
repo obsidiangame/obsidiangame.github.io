@@ -94,9 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
 		$("#panicmode").prop({ href: panicurl });
 	}
 	if ($(".obsidianminified").length > 0) {
-		$.get("https://raw.githubusercontent.com/skysthelimitt/selenite-optimized/main/build/bookmark.txt", function (data) {
-			$(".obsidianminified").prop({ href: data });
-		});
 		$.get("https://raw.githubusercontent.com/car-axle-client/car-axle-client/v10/dist/build.js", function (data) {
 			$(".caraxle").prop({ href: `javascript:${encodeURI(data)}` });
 		});
