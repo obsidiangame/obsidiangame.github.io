@@ -49,11 +49,8 @@
 				const lastGame = localStorage.getItem("obsidian.lastGame");
 				if (lastGame) {
 					try {
-						const game = JSON.parse(decodeURIComponent(atob(lastGame)));
-						if (game[3] === "sppa" && ["11", "emu", "gba", "scratch1", "sb2toswf", "ruffle", "turbowarp"].indexOf(game[0]) === -1) {
-							game[3] = "semag";
-						}
-						const card = document.getElementById("continuecard");
+const game = JSON.parse(decodeURIComponent(atob(lastGame)));
+const card = document.getElementById("continuecard");
 						card.href = "/loader.html#" + lastGame;
 						document.getElementById("continueicon").src = (game[3] || "semag") + "/" + game[0] + "/" + decodeURIComponent(game[1]);
 						document.getElementById("continuename").innerText = game[2] + (game[3] == "sppa" ? " (App)" : "");
