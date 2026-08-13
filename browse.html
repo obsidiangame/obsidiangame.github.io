@@ -282,7 +282,7 @@
 				align-items: center;
 				justify-content: center;
 				background-color: var(--bg);
-				z-index: 4;
+				z-index: 1000;
 				overflow: auto;
 			}
 			#startpage.hidden {
@@ -530,7 +530,7 @@
 			#settingsmodal {
 				position: absolute;
 				inset: 0;
-				z-index: 10;
+				z-index: 1001;
 				background-color: rgba(0, 0, 0, 0.5);
 				display: none;
 				align-items: center;
@@ -1480,8 +1480,12 @@
 				startpageEl.classList.toggle("hidden", !show);
 				if (show) {
 					const inp = document.getElementById("searchInput");
+					const addLink = document.getElementById("addlink");
+					if (addLink && addLink.classList.contains("show")) return;
+					const settingsModal = document.getElementById("settingsmodal");
+					if (settingsModal && settingsModal.classList.contains("show")) return;
 					const ae = document.activeElement;
-					if (inp && (!ae || ae === document.body || startpageEl.contains(ae))) inp.focus();
+					if (inp && (!ae || ae === document.body || ae === startpageEl)) inp.focus();
 				}
 			}
 
